@@ -8,13 +8,7 @@ import plotly.graph_objects as go
 # CONFIG DE LA PAGE --> AVEC FAVICON
 st.set_page_config(page_title="Projet Energie ", page_icon="🌟", layout="wide")
 
-# TITRE
-st.title("Projet Energie Laurence, Virginie, Jessica et Bernard")
-st.write("Introduction")
-
-import os
-print(os.path.exists(r"C:\Users\bernard.lavole\Documents\GitHub\mar24-cda-energie\df_energie.zip"))
-df_energie = pd.read_csv(r"C:\Users\bernard.lavole\Documents\GitHub\mar24-cda-energie\df_energie.zip", compression='zip')
+df_energie = pd.read_csv(r"df_energie.zip")
 
 # CONVERSTION EN DATETIME
 df_energie['Date'] = pd.to_datetime(df_energie['Date'], format='%Y-%m-%d')
