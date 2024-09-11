@@ -12,7 +12,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="big-font">🎈 Projet Energie</p>', unsafe_allow_html=True)
+st.markdown('<p class="big-font">🌟 Projet Energie</p>', unsafe_allow_html=True)
 
 st.markdown("""
 <style>

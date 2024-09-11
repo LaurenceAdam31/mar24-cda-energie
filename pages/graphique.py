@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # CONFIG DE LA PAGE --> AVEC FAVICON
 st.set_page_config(page_title="Projet Energie ", page_icon="🌟", layout="wide")
@@ -23,6 +24,17 @@ df_energie['Eolien (MW)'] = pd.to_numeric(df_energie['Eolien (MW)'], errors='coe
 
 # SUPPRIMER LE RESTE
 df_energie.dropna(subset=['Consommation (MW)'], axis=0, inplace=True)
+
+# Agréger les données par année pour obtenir la consommation et la production totales
+df_conso_prod = df_energie.groupby('Annee').agg({
+    'Consommation (MW)': 'sum',
+    'Production_totale (MW)': 'sum',
+    'Total_NonRenouvelable (MW)': 'sum',
+    'Total_Renouvelable (MW)': 'sum'
+}).reset_index()
+
+# Exclure les lignes où l'année est 2024
+df_conso_prod = df_conso_prod[df_conso_prod['Annee'] != 2024]
 
 # SIDEBAR A GAUCHE CLASSIQUE
 st.sidebar.title("Sommaire")
@@ -45,9 +57,10 @@ elif page == "DataVizualization":
     st.write("Visualisation des données :")
 
     # EXEMPLE HISTO
-    if st.checkbox("Afficher l'histogramme de la consommation d'énergie"):
+    if st.checkbox("Afficher l'histogramme de l'évolution de la consommation d'énergie"):
         fig = px.histogram(df_energie, x='Consommation (MW)', nbins=30, title='Distribution de la consommation d\'énergie')
         st.plotly_chart(fig)
+
 
     # EXEMPLE GRAPH LINE
     if st.checkbox("Afficher l'évolution de la consommation d'énergie au fil du temps"):
@@ -65,12 +78,12 @@ elif page == "Modélisation":
     st.write("Section de modélisation :")
     # VOIR AVEC JESSICA LAURENCE ET VIRGINIE POUR DEFINIR LES BESOINS DE LA PAGE MODELISATION
 
-# TODO FAIRE EN PLUS DES PETITS BOUTONS INTERACTIFS 
-if st.button("Afficher les premières lignes du dataset"):
-    st.dataframe(df_energie.head())
+# # TODO FAIRE EN PLUS DES PETITS BOUTONS INTERACTIFS 
+# if st.button("Afficher les premières lignes du dataset"):
+#     st.dataframe(df_energie.head())
 
-if st.button("Afficher les dernières lignes du dataset"):
-    st.dataframe(df_energie.tail())
+# if st.button("Afficher les dernières lignes du dataset"):
+#     st.dataframe(df_energie.tail())
 
-if st.button("Afficher les colonnes du dataset"):
-    st.write(df_energie.columns)
+# if st.button("Afficher les colonnes du dataset"):
+#     st.write(df_energie.columns)
