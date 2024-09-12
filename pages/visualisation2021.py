@@ -109,74 +109,51 @@ fig.update_layout(
 # Afficher le camembert
 st.plotly_chart(fig)
 
-df_anim = df_energie[df_energie["Annee"]>2014].sort_values(by="Annee")
+# Affichage cartes consommation par Région en 2021
+#Position [latitude, longitude] sur laquelle est centrée la carte
+location = [47, 1]
 
-# # Définir une couleur spécifique pour chaque région
-# couleurs_regions = {
-#      'Île-de-France': '#1f77b4',   # Bleu
-#     'Auvergne-Rhône-Alpes': '#ff7f0e',   # Orange
-#     'Provence-Alpes-Côte d\'Azur': '#2ca02c',   # Vert
-#     'Bretagne': '#d62728',   # Rouge
-#     'Normandie': '#9467bd',   # Violet
-#     'Nouvelle-Aquitaine': '#8c564b',   # Marron
-#     'Occitanie': '#e377c2',   # Rose
-#     'Pays de la Loire': '#7f7f7f',   # Gris
-#     'Hauts-de-France': '#bcbd22',   # Vert clair
-#     'Grand Est': '#17becf',   # Bleu clair
-#     'Centre-Val de Loire': '#ffbb78',   # Jaune foncé
-#     'Bourgogne-Franche-Comté': '#f7b6d2'  # Rose clair
-# }
+#Niveau de zoom initial :
+#3-4 pour un continent, 5-6 pour un pays, 11-12 pour une ville
+zoom = 6
 
-# # Création du graphique de boîtes animées
-# fig = px.box(df_anim,
-#              x="Région",
-#              y="Consommation (MW)",
-#              animation_frame="Annee",
-#              range_y=[0, 20000],
-#              color="Région",  # Utilisation de la colonne 'Région' pour la coloration
-#              color_discrete_map=couleurs_regions  # Application de la carte de couleur
-#             )
+#Style de la carte
+tiles = 'cartodbpositron'
+st.write('CARTE DE LA CONSOMMATION PAR REGION EN 2021')
 
-# # Mise à jour de la mise en page
-# fig.update_layout(
-#     title="Consommation d'énergie par région de 2015 à 2024",
-#     xaxis_title="Région",
-#     yaxis_title="Consommation (MW)"
-# )
+Carte = folium.Map(location = location,
+                   zoom_start = zoom,
+                   tiles = tiles)
 
-# # Afficher le graphique
-# st.plotly_chart(fig)
+json = pd.read_json('regions.geojson')
 
+folium.Choropleth(
+    geo_data='regions.geojson',
+    name="choropleth",
+    data=df_2021,
+    columns=['Région', "Consommation (MW)"],
+    key_on="feature.properties.nom",
+    fill_color="Blues",
+    fill_opacity=0.7,
+    line_opacity=0.2,
+    legend_name="Consommation (MW)",
+).add_to(Carte)
+st_folium(Carte)
 
-# json = pd.read_json('regions.geojson')
-# json.features[5]
-
-# #Position [latitude, longitude] sur laquelle est centrée la carte
-# location = [47, 1]
-
-# #Niveau de zoom initial :
-# #3-4 pour un continent, 5-6 pour un pays, 11-12 pour une ville
-# zoom = 6
-
-# #Style de la carte
-# tiles = 'cartodbpositron'
-
-# Carte = folium.Map(location = [46.603354, 1.888334], zoom_start = 6)
-
-
-# st_folium(Carte)
-
-# # Carte de France COnsommation par région en 2021
-# folium.Choropleth(
-#     geo_data='regions.geojson',
-#     name="choropleth",
-#     data=df_2021,
-#     columns=['Région', "Consommation (MW)"],
-#     key_on="feature.properties.nom",
-#     fill_color="Blues",
-#     fill_opacity=0.7,
-#     line_opacity=0.2,
-#     legend_name="Consommation (MW)",
-# ).add_to(Carte)
-
-# st_folium(Carte)
+# Carte France Production par Région en 2021
+Carte2 = folium.Map(location = location,
+                   zoom_start = zoom,
+                   tiles = tiles)
+st.write('CARTE DE LA PRODUCTION PAR REGION EN 2021')
+folium.Choropleth(
+    geo_data='regions.geojson',
+    name="choropleth",
+    data=df_2021,
+    columns=['Région', "Production_totale (MW)"],
+    key_on="feature.properties.nom",
+    fill_color="Reds",
+    fill_opacity=0.3,
+    line_opacity=0.2,
+    legend_name="Production_totale (MW)",
+).add_to(Carte2)
+st_folium(Carte2)
