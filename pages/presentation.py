@@ -1,10 +1,11 @@
 import streamlit as st
 st.title('PRESENTATION DU SUJET')
 
+
 st.markdown("""
 <style>
 .medium-font {
-    font-size:30px !important;
+    font-size:25px !important;
     font-family: system-ui;
 }
 .center{
