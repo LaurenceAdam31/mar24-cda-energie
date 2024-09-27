@@ -1,30 +1,49 @@
 import streamlit as st
-st.title('PRESENTATION DU SUJET')
 
+# Fonction pour appliquer les styles CSS
+def apply_styles():
+    st.markdown("""
+        <style>
+        .big-font {
+            font-size: 50px !important;
+            font-family: system-ui;
+            color: #2d3a64; /* Couleur personnalisée pour le titre */
+        }
+        .medium-font {
+            font-size: 30px !important;
+            font-family: system-ui;
+            color: #2d3a64;
+        }
+        .small-font {
+            font-size: 24px !important; 
+            font-family: system-ui;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
+# Appel de la fonction pour appliquer les styles
+apply_styles()
+
+# Titre principal avec grande taille de police, aligné à gauche
+st.markdown('<p class="big-font">🎯 Présentation du Projet</p>', unsafe_allow_html=True)
+
+# Objectifs avec liste à puces
 st.markdown("""
-<style>
-.medium-font {
-    font-size:20px !important;
-    font-family: system-ui;
-}
-.center{
-            text-align:center;}
-</style>
+<p class='medium-font'><b>Objectifs :</b></p>
+<ul>
+    <li style="font-size: 24px; font-family: system-ui;">Observer la consommation et la production d'énergie</li>
+    <li style="font-size: 24px; font-family: system-ui;">En déduire une prévision de consommation</li>
+</ul>
 """, unsafe_allow_html=True)
 
-st.markdown("<p class='medium-font'> Objectifs</p>", unsafe_allow_html=True)
-
+# Etapes du Projet
 st.markdown("""
-<style>
-.small-font {
-    font-size:16px !important;
-    font-family: system-ui;
-}
-.left{
-         text-align: left;}
-</style>
+<p class='medium-font'><b>Méthodologie :</b></p>
+<ul>
+     <li style="font-size: 24px; font-family: system-ui;">Explorer, nettoyer et enrichir le jeu de données</li>
+    <li style="font-size: 24px; font-family: system-ui;">Analyser l'évolution de la consommation et la production d'énergie au niveau national</li>
+    <li style="font-size: 24px; font-family: system-ui;">Etudier les spécificités régionales</li>
+    <li style="font-size: 24px; font-family: system-ui;">Expérimenter des modèles de machine learning pour réaliser des prévisions de consommation</li>
+</ul>
 """, unsafe_allow_html=True)
 
-
-st.markdown("<p class='small-font'> <b>L’objectif</b> de ce projet est d’observer la synchronisation entre la consommation et la production d'énergie, tant au niveau national que régional, pour déduire une prévision de consommation. <br> Pour cela, nous allons faire : <br><b>Analyse au niveau national</b> - Analyse de la consommation et de la production à différentes échelles de temps pour visualiser l’évolution de la consommation et de la production. Nous étudierons également le phasage entre la production et la consommation afin d’identifier les périodes avec risques de black out. <br><b>Analyse niveau régional </b> - Analyse de la répartition par région de la production et de la consommation, comparaison des données de consommation et de production entre les différentes et identifier les régions les plus à risques de black-out  <br><b>Analyse par filière de production </b> - voir l’évolution des énergies renouvelables par rapport à l'énergie nucléaire dans le temps. Identifier quelles régions présentent le plus de production d'énergie renouvelable et étudier la répartition par type de production.<br><b>Analyse températures / consommation </b> - Nous procéderons à une étude des corrélations entre la consommation d'énergie et les températures extérieures.  </p>", unsafe_allow_html=True)
