@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 
 # Fonction pour appliquer les styles CSS
 def apply_styles():
@@ -47,3 +48,28 @@ st.markdown("""
 </ul>
 """, unsafe_allow_html=True)
 
+# Présentation du Jeu de données
+st.markdown("""
+<p class='medium-font'><b>Jeux de données utilisés :</b></p>
+<ul>
+     <li style="font-size: 24px; font-family: system-ui;">
+         Dataset "<a href='https://odre.opendatasoft.com/explore/dataset/eco2mix-regional-cons-def/information/?disjunctive.libelle_region&disjunctive.nature' target='_blank'>Eco2mix Régional</a>" de janvier 2013 à janvier 2023
+     </li>
+    <li style="font-size: 24px; font-family: system-ui;">
+        Données régionales "<a href='https://odre.opendatasoft.com/explore/dataset/eco2mix-regional-tr/export/?disjunctive.libelle_region&disjunctive.nature' target='_blank'>Temps réel</a>" de février 2023 à juin 2024
+    </li>
+</ul>
+""", unsafe_allow_html=True)
+
+#Visualisation du dataset
+df_energie = pd.read_csv(r"df_energie.zip")
+
+# TODO FAIRE EN PLUS DES PETITS BOUTONS INTERACTIFS 
+if st.button("Afficher les premières lignes du dataset"):
+    st.dataframe(df_energie.head())
+
+if st.button("Afficher les dernières lignes du dataset"):
+    st.dataframe(df_energie.tail())
+
+if st.button("Afficher les colonnes du dataset"):
+    st.write(df_energie.columns)
