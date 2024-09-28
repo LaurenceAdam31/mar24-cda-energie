@@ -3,12 +3,14 @@ import plotly.express as px
 import pandas as pd
 
 
-# Titre principal avec grande taille de police, aligné à gauche
-st.markdown('<p class="big-font">Etude au niveau Régional</p>', unsafe_allow_html=True)
+# Titre pour "Étude au niveau Régional" avec style personnalisé
+st.markdown('<p class="medium-font"><b>Étude au niveau Régional</b></p>', unsafe_allow_html=True)
 
-# Ajout d'un titre
+# Analyse de la consommation d'énergie par région
+st.markdown("""
+<p class='medium-font'><b>Analyse de la consommation d'énergie par région (2015 - 2024) :</b></p>
+""", unsafe_allow_html=True)
 
-st.markdown("<p class='medium-font'><b>Analyse de la consommation d'énergie par région (2015 - 2024) :</b></p>")
             
 # Chargement dataframe
 df_energie = pd.read_csv(r"df_energie.zip")
