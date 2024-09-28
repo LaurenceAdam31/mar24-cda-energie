@@ -8,7 +8,7 @@ st.markdown('<p class="big-font">Etude au niveau Régional</p>', unsafe_allow_ht
 
 # Ajout d'un titre
 
-st.markdown("<p class='medium-font'><b>Objectifs :</b></p>")
+st.markdown("<p class='medium-font'><b>Analyse de la consommation d'énergie par région (2015 - 2024) :</b></p>")
             
 # Chargement dataframe
 df_energie = pd.read_csv(r"df_energie.zip")
