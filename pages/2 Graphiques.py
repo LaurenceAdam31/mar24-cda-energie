@@ -11,32 +11,10 @@ from utils import import_data as imda
 # CONFIG DE LA PAGE --> AVEC FAVICON
 st.set_page_config(page_title="Projet Energie ", page_icon="🌟", layout="wide")
 
-df_energie = pd.read_csv(r"df_energie.zip")
+df_energie = imda.import_df()
 
 # CONVERSTION EN DATETIME
-df_energie['Date'] = pd.to_datetime(df_energie['Date'], format='%Y-%m-%d')
-df_energie['Heure'] = pd.to_datetime(df_energie['Heure'], format='%H:%M').dt.strftime('%H:%M')
-df_energie['Date - Heure'] = pd.to_datetime(df_energie['Date - Heure'], utc=True)
-
-# REMPLACEMENT DES VALEURS QUI NE SONT PAS CONVERTIBLES EN NaN
-df_energie['Eolien (MW)'] = df_energie['Eolien (MW)'].replace(['', 'non-disponible'], np.nan)
-
-# CONVERSION DE LA COLONNE EN FLOAT, SI PAS POSSSIBLE ALORS CONVERSION EN NaN
-df_energie['Eolien (MW)'] = pd.to_numeric(df_energie['Eolien (MW)'], errors='coerce')
-
-# SUPPRIMER LE RESTE
-df_energie.dropna(subset=['Consommation (MW)'], axis=0, inplace=True)
-
-# Agréger les données par année pour obtenir la consommation et la production totales
-df_conso_prod = df_energie.groupby('Annee').agg({
-    'Consommation (MW)': 'sum',
-    'Production_totale (MW)': 'sum',
-    'Total_NonRenouvelable (MW)': 'sum',
-    'Total_Renouvelable (MW)': 'sum'
-}).reset_index()
-
-# Exclure les lignes où l'année est 2024
-df_conso_prod = df_conso_prod[df_conso_prod['Annee'] != 2024]
+df_energie, df_conso_prod = imda.modif_df(df_energie)
 
 # SIDEBAR A GAUCHE CLASSIQUE
 st.sidebar.title("Graphiques")

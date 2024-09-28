@@ -9,6 +9,138 @@ import folium
 from streamlit_folium import st_folium
 import altair as alt
 
+@st.cache_data
+def import_df():
+    df = pd.read_csv(r"df_energie.zip")
+    return df
+
+
+@st.cache_data
+def modif_df(df_energie):
+    df_energie['Date'] = pd.to_datetime(df_energie['Date'], format='%Y-%m-%d')
+    df_energie['Heure'] = pd.to_datetime(df_energie['Heure'], format='%H:%M').dt.strftime('%H:%M')
+    df_energie['Date - Heure'] = pd.to_datetime(df_energie['Date - Heure'], utc=True)
+
+    # REMPLACEMENT DES VALEURS QUI NE SONT PAS CONVERTIBLES EN NaN
+    df_energie['Eolien (MW)'] = df_energie['Eolien (MW)'].replace(['', 'non-disponible'], np.nan)
+
+    # CONVERSION DE LA COLONNE EN FLOAT, SI PAS POSSSIBLE ALORS CONVERSION EN NaN
+    df_energie['Eolien (MW)'] = pd.to_numeric(df_energie['Eolien (MW)'], errors='coerce')
+
+    # SUPPRIMER LE RESTE
+    df_energie.dropna(subset=['Consommation (MW)'], axis=0, inplace=True)
+
+    # Agréger les données par année pour obtenir la consommation et la production totales
+    df_conso_prod = df_energie.groupby('Annee').agg({
+        'Consommation (MW)': 'sum',
+        'Production_totale (MW)': 'sum',
+        'Total_NonRenouvelable (MW)': 'sum',
+        'Total_Renouvelable (MW)': 'sum'
+    }).reset_index()
+
+    # Exclure les lignes où l'année est 2024
+    df_conso_prod = df_conso_prod[df_conso_prod['Annee'] != 2024]
+    
+    return df_energie, df_conso_prod
+
+@st.cache_data
+def create_fig_1(df):
+    # Créer le camembert avec Plotly Express
+    fig = px.pie(df, values='Pourcentage (%)', names='Type d\'énergie',
+                title="Production d'énergie par type en France en 2021 en pourcentage")
+
+    # Personnaliser les couleurs du camembert
+    colors = ['#EF553B', '#636EFA', '#B6E880', '#FECB52', '#19D3F3', '#AB63FA', '#FFA15A', 'gray']
+    fig.update_traces(marker=dict(colors=colors))
+
+
+    # Ajouter un titre au centre
+    fig.update_layout(title={
+        'text': "Sources de production d'énergie en France en 2021",
+        'y': 0.9,  # Ajuster la position verticale du titre
+        'x': 0.5,   # Ajuster la position horizontale du titre
+        'xanchor': 'center',  # Centrer le titre horizontalement
+        'yanchor': 'top'      # Aligner le titre en haut
+    })
+
+    # Ajouter la légende en dessous du camembert
+    fig.update_layout(
+        legend=dict(
+            orientation='h',  # Orientation horizontale de la légende
+            font=dict(size=12, color='black')  # Police et couleur du texte de la légende
+        )
+    )
+
+    # Définir la taille de la figure
+    fig.update_layout(
+        width=600,   # Largeur de la figure en pixels
+        height=600   # Hauteur de la figure en pixels
+    )
+
+    fig.update_traces(
+        textinfo='percent+label',  # Afficher les pourcentages et les labels
+        textposition='inside',  # Positionner les textes à l'intérieur des segments
+        marker=dict(line=dict(color='white', width=2))  # Ajouter une bordure blanche entre les segments pour plus de clarté
+    )
+    
+    st.plotly_chart(fig)
+    
+@st.cache_data
+def create_fig_2(df):
+    # Création d'un camembert représentant en % la consommation d'énergie par Région
+    fig = px.pie(df, values='Consommation (MW)', names='Région',
+                    title=f"Consommation d'énergie par région en France pour l'année 2021")
+
+    fig.update_layout(
+        width=600,  # largeur en pixels
+        height=600,  # hauteur en pixels
+        legend=dict(
+            orientation="h",  # 'h' horizontal
+            # yanchor="bottom",  # ancrer en haut
+            # y=1,  # place la légende à la hauteur du graphique
+            # xanchor="left",  # ancrer à gauche
+            # x=-0.3  # déplacer légèrement la légende vers la gauche
+            font=dict(size=12, color='black')  # Police et couleur du texte de la légend
+        )
+    )
+
+    # Afficher le camembert
+    st.plotly_chart(fig)
+    
+
+# @st.cache_data
+# def create_fig_3(df):
+    # # Affichage cartes consommation par Région en 2021
+    # #Position [latitude, longitude] sur laquelle est centrée la carte
+    # location = [47, 1]
+
+    # #Niveau de zoom initial :
+    # #3-4 pour un continent, 5-6 pour un pays, 11-12 pour une ville
+    # zoom = 6
+
+    # #Style de la carte
+    # tiles = 'cartodbpositron'
+
+    # Carte = folium.Map(location = location,
+    #                 zoom_start = zoom,
+    #                 tiles = tiles)
+
+    # json = pd.read_json('regions.geojson')
+
+    # folium.Choropleth(
+    #     geo_data='regions.geojson',
+    #     name="choropleth",
+    #     data=df,
+    #     columns=['Région', "Consommation (MW)"],
+    #     key_on="feature.properties.nom",
+    #     fill_color="Blues",
+    #     fill_opacity=0.7,
+    #     line_opacity=0.2,
+    #     legend_name="Consommation (MW)",
+    # ).add_to(Carte)
+    # st_folium(Carte)
+
+
 
 def data_2021(data):
     df_energie = data
@@ -53,84 +185,31 @@ def data_2021(data):
     df_pourcentages.columns = ["Type d'énergie", "Pourcentage (%)"]
 
     with col1:
-        # Créer le camembert avec Plotly Express
-        fig = px.pie(df_pourcentages, values='Pourcentage (%)', names='Type d\'énergie',
-                    title="Production d'énergie par type en France en 2021 en pourcentage")
-
-        # Personnaliser les couleurs du camembert
-        colors = ['#EF553B', '#636EFA', '#B6E880', '#FECB52', '#19D3F3', '#AB63FA', '#FFA15A', 'gray']
-        fig.update_traces(marker=dict(colors=colors))
-
-
-        # Ajouter un titre au centre
-        fig.update_layout(title={
-            'text': "Sources de production d'énergie en France en 2021",
-            'y': 0.9,  # Ajuster la position verticale du titre
-            'x': 0.5,   # Ajuster la position horizontale du titre
-            'xanchor': 'center',  # Centrer le titre horizontalement
-            'yanchor': 'top'      # Aligner le titre en haut
-        })
-
-        # Ajouter la légende en dessous du camembert
-        fig.update_layout(
-            legend=dict(
-                orientation='h',  # Orientation horizontale de la légende
-                font=dict(size=12, color='black')  # Police et couleur du texte de la légende
-            )
-        )
-
-        # Définir la taille de la figure
-        fig.update_layout(
-            width=600,   # Largeur de la figure en pixels
-            height=600   # Hauteur de la figure en pixels
-        )
-
-        fig.update_traces(
-            textinfo='percent+label',  # Afficher les pourcentages et les labels
-            textposition='inside',  # Positionner les textes à l'intérieur des segments
-            marker=dict(line=dict(color='white', width=2))  # Ajouter une bordure blanche entre les segments pour plus de clarté
-        )
+        create_fig_1(df_pourcentages)
         # Afficher le camembert
-        st.plotly_chart(fig)
+        
 
     with col2:
-        # Création d'un camembert représentant en % la consommation d'énergie par Région
-        fig = px.pie(df_2021, values='Consommation (MW)', names='Région',
-                        title=f"Consommation d'énergie par région en France pour l'année 2021")
-
-        fig.update_layout(
-            width=600,  # largeur en pixels
-            height=600,  # hauteur en pixels
-            legend=dict(
-                orientation="h",  # 'h' horizontal
-                # yanchor="bottom",  # ancrer en haut
-                # y=1,  # place la légende à la hauteur du graphique
-                # xanchor="left",  # ancrer à gauche
-                # x=-0.3  # déplacer légèrement la légende vers la gauche
-                font=dict(size=12, color='black')  # Police et couleur du texte de la légend
-            )
-        )
-
-        # Afficher le camembert
-        st.plotly_chart(fig)
+        create_fig_2(df_2021)
 
     st.divider()
 
     col3, col4 = st.columns(2)
 
-    # Affichage cartes consommation par Région en 2021
-    #Position [latitude, longitude] sur laquelle est centrée la carte
-    location = [47, 1]
-
-    #Niveau de zoom initial :
-    #3-4 pour un continent, 5-6 pour un pays, 11-12 pour une ville
-    zoom = 6
     
     with col3:
+        st.write('CARTE DE LA CONSOMMATION PAR REGION EN 2021')
+        
+        # Affichage cartes consommation par Région en 2021
+        #Position [latitude, longitude] sur laquelle est centrée la carte
+        location = [47, 1]
+
+        #Niveau de zoom initial :
+        #3-4 pour un continent, 5-6 pour un pays, 11-12 pour une ville
+        zoom = 6
 
         #Style de la carte
         tiles = 'cartodbpositron'
-        st.write('CARTE DE LA CONSOMMATION PAR REGION EN 2021')
 
         Carte = folium.Map(location = location,
                         zoom_start = zoom,
@@ -150,6 +229,7 @@ def data_2021(data):
             legend_name="Consommation (MW)",
         ).add_to(Carte)
         st_folium(Carte)
+        
 
     with col4:
 
