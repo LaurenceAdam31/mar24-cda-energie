@@ -2,6 +2,29 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 
+# Fonction pour appliquer les styles CSS
+def apply_styles():
+    st.markdown("""
+        <style>
+        .big-font {
+            font-size: 50px !important;
+            font-family: system-ui;
+            color: #2d3a64; /* Couleur personnalisée pour le titre */
+        }
+        .medium-font {
+            font-size: 30px !important;
+            font-family: system-ui;
+            color: #2d3a64;
+        }
+        .small-font {
+            font-size: 24px !important; 
+            font-family: system-ui;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+# Appel de la fonction pour appliquer les styles
+apply_styles()
 
 # Titre pour "Étude au niveau Régional" avec style personnalisé
 st.markdown('<p class="medium-font"><b>Étude au niveau Régional</b></p>', unsafe_allow_html=True)
