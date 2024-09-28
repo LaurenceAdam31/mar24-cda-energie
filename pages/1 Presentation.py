@@ -73,3 +73,6 @@ if st.button("Afficher les dernières lignes du dataset"):
 
 if st.button("Afficher les colonnes du dataset"):
     st.write(df_energie.columns)
+    
+if st.button("Afficher les colonnes et types"):
+    st.write(df_energie.dtypes)
