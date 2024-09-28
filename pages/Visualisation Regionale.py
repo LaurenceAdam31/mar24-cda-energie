@@ -2,9 +2,14 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 
-# Ajout d'un titre à l'application
-st.title("Analyse de la consommation d'énergie par région (2015 - 2024)")
 
+# Titre principal avec grande taille de police, aligné à gauche
+st.markdown('<p class="big-font">Etude au niveau Régional</p>', unsafe_allow_html=True)
+
+# Ajout d'un titre
+
+st.markdown("<p class='medium-font'><b>Objectifs :</b></p>")
+            
 # Chargement dataframe
 df_energie = pd.read_csv(r"df_energie.zip")
 
