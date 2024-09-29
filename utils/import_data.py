@@ -10,8 +10,8 @@ from streamlit_folium import st_folium
 import altair as alt
 
 @st.cache_data
-def import_df():
-    df = pd.read_csv(r"df_energie.zip")
+def import_df(file):
+    df = pd.read_csv(rf"{file}")
     return df
 
 
@@ -85,62 +85,28 @@ def create_fig_1(df):
     
     st.plotly_chart(fig)
     
-@st.cache_data
-def create_fig_2(df):
-    # Création d'un camembert représentant en % la consommation d'énergie par Région
-    fig = px.pie(df, values='Consommation (MW)', names='Région',
-                    title=f"Consommation d'énergie par région en France pour l'année 2021")
+# @st.cache_data
+# def create_fig_2(df):
+#     # Création d'un camembert représentant en % la consommation d'énergie par Région
+#     fig = px.pie(df, values='Consommation (MW)', names='Région',
+#                     title=f"Consommation d'énergie par région en France pour l'année 2021")
 
-    fig.update_layout(
-        width=600,  # largeur en pixels
-        height=600,  # hauteur en pixels
-        legend=dict(
-            orientation="h",  # 'h' horizontal
-            # yanchor="bottom",  # ancrer en haut
-            # y=1,  # place la légende à la hauteur du graphique
-            # xanchor="left",  # ancrer à gauche
-            # x=-0.3  # déplacer légèrement la légende vers la gauche
-            font=dict(size=12, color='black')  # Police et couleur du texte de la légend
-        )
-    )
+#     fig.update_layout(
+#         width=600,  # largeur en pixels
+#         height=600,  # hauteur en pixels
+#         legend=dict(
+#             orientation="h",  # 'h' horizontal
+#             # yanchor="bottom",  # ancrer en haut
+#             # y=1,  # place la légende à la hauteur du graphique
+#             # xanchor="left",  # ancrer à gauche
+#             # x=-0.3  # déplacer légèrement la légende vers la gauche
+#             font=dict(size=12, color='black')  # Police et couleur du texte de la légend
+#         )
+#     )
 
     # Afficher le camembert
-    st.plotly_chart(fig)
+    # st.plotly_chart(fig)
     
-
-# @st.cache_data
-# def create_fig_3(df):
-    # # Affichage cartes consommation par Région en 2021
-    # #Position [latitude, longitude] sur laquelle est centrée la carte
-    # location = [47, 1]
-
-    # #Niveau de zoom initial :
-    # #3-4 pour un continent, 5-6 pour un pays, 11-12 pour une ville
-    # zoom = 6
-
-    # #Style de la carte
-    # tiles = 'cartodbpositron'
-
-    # Carte = folium.Map(location = location,
-    #                 zoom_start = zoom,
-    #                 tiles = tiles)
-
-    # json = pd.read_json('regions.geojson')
-
-    # folium.Choropleth(
-    #     geo_data='regions.geojson',
-    #     name="choropleth",
-    #     data=df,
-    #     columns=['Région', "Consommation (MW)"],
-    #     key_on="feature.properties.nom",
-    #     fill_color="Blues",
-    #     fill_opacity=0.7,
-    #     line_opacity=0.2,
-    #     legend_name="Consommation (MW)",
-    # ).add_to(Carte)
-    # st_folium(Carte)
-
-
 
 def data_2021(data):
     df_energie = data
@@ -189,8 +155,8 @@ def data_2021(data):
         # Afficher le camembert
         
 
-    with col2:
-        create_fig_2(df_2021)
+    # with col2:
+    #     create_fig_2(df_2021)
 
     st.divider()
 

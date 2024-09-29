@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from utils import import_data as imda
 
 # Fonction pour appliquer les styles CSS
 def apply_styles():
@@ -62,7 +63,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 #Visualisation du dataset
-df_energie = pd.read_csv(r"df_energie.zip")
+df_energie = imda.import_df("df_energie.zip")
 
 # TODO FAIRE EN PLUS DES PETITS BOUTONS INTERACTIFS 
 if st.button("Afficher les premières lignes du dataset"):
