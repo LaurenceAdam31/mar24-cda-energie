@@ -36,8 +36,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
             
-# Chargement dataframe
-df_energie = imda.import_df("df_energie.zip")
+# IMPORTATION DU DATASET df_energie
+df_energie = imda.get_df_energie()  
 
 # Filtrer les données à partir de l'année 2015
 df_anim = df_energie[df_energie["Annee"] > 2014].sort_values(by="Annee")

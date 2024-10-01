@@ -32,21 +32,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from utils import import_data as imda
 
-# Charger les données
-df_group = imda.import_df("df_conso.csv")  
+# IMPORTATION DES DATAFRAMES
+df = imda.import_df()   
+df2 = imda.import_df2()  # 
 
+#IMPORT DU DATAFRAME df_group
+df_energie = imda.modif_df(df, df2)
+df_group = imda.get_df_group(df_energie)
 
-# Group by 'PERIODE' and 'Code INSEE région' and aggregate 'Consommation (MW)'
-df_group = df_group.groupby(['PERIODE', 'Code INSEE région']).agg({'Consommation (MW)': 'sum'}).reset_index()
-
-
-# Définir la colonne 'PERIODE' comme index
-df_group['PERIODE'] = pd.to_datetime(df_group['PERIODE'])
-df_group.set_index('PERIODE', inplace=True)
-
-
-
-# Créer un dictionnaire pour stocker les DataFrames par région
+# # Créer un dictionnaire pour stocker les DataFrames par région
 df_par_region = {}
 for region, df_region in df_group.groupby("Code INSEE région"):
     if df_region.index.duplicated().any():

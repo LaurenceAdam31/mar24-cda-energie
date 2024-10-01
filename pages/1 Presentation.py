@@ -62,18 +62,18 @@ st.markdown("""
 </ul>
 """, unsafe_allow_html=True)
 
-#Visualisation du dataset
-df_energie = imda.import_df("df_energie.zip")
+# IMPORTATION DU DATASET df_energie
+df_energie = imda.get_df_energie()  
 
 # TODO FAIRE EN PLUS DES PETITS BOUTONS INTERACTIFS 
-if st.button("Afficher les premières lignes du dataset"):
+if st.button("Afficher les premières lignes du dataset d'énergie"):
     st.dataframe(df_energie.head())
 
-if st.button("Afficher les dernières lignes du dataset"):
+if st.button("Afficher les dernières lignes du dataset d'énergie"):
     st.dataframe(df_energie.tail())
 
-if st.button("Afficher les colonnes du dataset"):
+if st.button("Afficher les colonnes du dataset d'énergie"):
     st.write(df_energie.columns)
-    
-if st.button("Afficher les colonnes et types"):
+
+if st.button("Afficher les colonnes et types du dataset d'énergie"):
     st.write(df_energie.dtypes)

@@ -9,26 +9,169 @@ import folium
 from streamlit_folium import st_folium
 import altair as alt
 
+# Fonction pour appliquer les styles CSS
+def apply_styles():
+    st.markdown("""
+        <style>
+        .big-font {
+            font-size: 50px !important;
+            font-family: system-ui;
+            color: #2d3a64; /* Couleur personnalisée pour le titre */
+        }
+        .medium-font {
+            font-size: 30px !important;
+            font-family: system-ui;
+            color: #2d3a64;
+        }
+        .small-font {
+            font-size: 24px !important; 
+            font-family: system-ui;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+# Liste des noms de mois en français
+month_name_fr = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 
+                 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+
+#IMPORT DU FICHIER CONSOLIDE ECO2MIX REGIONAL
 @st.cache_data
-def import_df(file):
-    df = pd.read_csv(rf"{file}")
+def import_df():
+    df = pd.read_csv("eco2mix-regional-cons-def.csv.zip", compression='zip', sep=';')
     return df
 
-
+#IMPORT DU FICHIER TEMPS REEL 
 @st.cache_data
-def modif_df(df_energie):
-    df_energie['Date'] = pd.to_datetime(df_energie['Date'], format='%Y-%m-%d')
-    df_energie['Heure'] = pd.to_datetime(df_energie['Heure'], format='%H:%M').dt.strftime('%H:%M')
-    df_energie['Date - Heure'] = pd.to_datetime(df_energie['Date - Heure'], utc=True)
+def import_df2():
+    df2 = pd.read_csv("eco2mix-regional-tr(2).csv.zip", compression='zip', sep=';')
+    return df2
 
-    # REMPLACEMENT DES VALEURS QUI NE SONT PAS CONVERTIBLES EN NaN
-    df_energie['Eolien (MW)'] = df_energie['Eolien (MW)'].replace(['', 'non-disponible'], np.nan)
+#MODIFICATIONS ET CREATION DE df_energie
+@st.cache_data
+def modif_df(df, df2): 
 
-    # CONVERSION DE LA COLONNE EN FLOAT, SI PAS POSSSIBLE ALORS CONVERSION EN NaN
-    df_energie['Eolien (MW)'] = pd.to_numeric(df_energie['Eolien (MW)'], errors='coerce')
+    # Traitement du premier dataset df
+    df['Code INSEE région'] = df['Code INSEE région'].astype(str).apply(lambda x: f"{int(x)}")
+    df['Date'] = pd.to_datetime(df['Date'], format='%Y-%m-%d', errors='coerce')
+    df['Heure'] = pd.to_datetime(df['Heure'], format='%H:%M', errors='coerce').dt.strftime('%H:%M')
+    df['Date - Heure'] = pd.to_datetime(df['Date - Heure'], utc=True, errors='coerce')
+    
+    # SUPPRIMER LES LIGNES DONT LA CONSO N'EST PAS RENSEIGNEE
+    df.dropna(subset=['Consommation (MW)'], axis=0, inplace=True)
+    
+    # SUPPRESSION DES COLONNES NON ÉTUDIÉES AINSI QUE EOLIEN TERRESTRE ET EOLIEN OFFSHORE VIDES AVANT 2021
+    columns_to_drop = [
+    'TCO Thermique (%)', 'TCH Thermique (%)',
+    'TCO Nucléaire (%)', 'TCH Nucléaire (%)', 'TCO Eolien (%)', 'TCH Eolien (%)',
+    'TCO Solaire (%)', 'TCH Solaire (%)', 'TCO Hydraulique (%)', 'TCH Hydraulique (%)',
+    'TCO Bioénergies (%)', 'TCH Bioénergies (%)', 'Column 30',
+    'Stockage batterie', 'Déstockage batterie', 'Eolien terrestre', 'Eolien offshore']
+    
+    df = df.drop(columns=columns_to_drop, errors='ignore')
+    
+    # REMPLACEMENT DES VALEURS MANQUANTES DANS CERTAINES COLONNES PAR 0
+    df['Nucléaire (MW)'] = df['Nucléaire (MW)'].fillna(0)
+    df['Pompage (MW)'] = df['Pompage (MW)'].fillna(0)
+    
+    # TRAITEMENT DE LA COLONNE 'Eolien (MW)'
+    df['Eolien (MW)'] = df['Eolien (MW)'].replace(['', 'non-disponible'], np.nan)
+    df['Eolien (MW)'] = pd.to_numeric(df['Eolien (MW)'], errors='coerce')  # Remplacer les erreurs par NaN
+    df['Eolien (MW)'] = df['Eolien (MW)'].fillna(0)
+    
+    # CORRECTION DES MESURES PRISES TOUTES LES DEMI-HEURES 
+    df.drop(df[df['Date - Heure'].dt.minute == 30].index, inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    
+    # Traitement du deuxième dataset df2
+    df2['Code INSEE région'] = df2['Code INSEE région'].astype(str).apply(lambda x: f"{int(x)}")
+    df2['Date'] = pd.to_datetime(df2['Date'], format='%Y-%m-%d', errors='coerce')
+    df2['Heure'] = pd.to_datetime(df2['Heure'], format='%H:%M', errors='coerce').dt.strftime('%H:%M')
+    df2['Date - Heure'] = pd.to_datetime(df2['Date - Heure'], utc=True, errors='coerce')
+    
+    df2.dropna(subset=['Consommation (MW)'], axis=0, inplace=True)
 
-    # SUPPRIMER LE RESTE
-    df_energie.dropna(subset=['Consommation (MW)'], axis=0, inplace=True)
+    df2 = df2.drop(columns=columns_to_drop, errors='ignore')
+    df2['Nucléaire (MW)'] = df2['Nucléaire (MW)'].fillna(0)
+
+    # Filtrer et supprimer les lignes où les minutes sont 30, 15 ou 45
+    df2.drop(df2[(df2['Date - Heure'].dt.minute == 30) |
+                  (df2['Date - Heure'].dt.minute == 15) |
+                  (df2['Date - Heure'].dt.minute == 45)].index, inplace=True)
+
+    df2.reset_index(drop=True, inplace=True)
+
+    # Concaténer les deux dataframes modifiés
+    df_energie = pd.concat([df, df2], ignore_index=True)
+    
+    # Ajout de la colonne 'PERIODE' dans df_energie
+    df_energie['PERIODE'] = df_energie['Date'].dt.to_period('M').astype(str)
+    
+    # Ajout d'une colonne année et nom du mois en français
+    df_energie['Annee'] = df_energie['Date'].dt.year
+    df_energie['Mois'] = df_energie['Date'].dt.month.map(lambda x: month_name_fr[x - 1])
+
+    # Déplacer les colonnes "Annee" et "Mois" au début du DataFrame, après la colonne "Heure"
+    df_energie = df_energie[['Date', 'Annee', 'Mois', 'Heure'] + [col for col in df_energie.columns if col not in ['Date', 'Annee', 'Mois', 'Heure']]]
+
+    # Remplacer les valeurs non convertibles par NaN
+    df_energie['Pompage (MW)'] = df_energie['Pompage (MW)'].replace(['', 'non-disponible'], np.nan)
+
+    # Convertir la colonne en float
+    df_energie['Pompage (MW)'] = pd.to_numeric(df_energie['Pompage (MW)'], errors='coerce')
+
+    # Création des colonnes de production
+    df_energie["Total_NonRenouvelable (MW)"] = df_energie[['Thermique (MW)', 'Nucléaire (MW)']].sum(axis=1)
+    df_energie["Total_Renouvelable (MW)"] = df_energie[['Solaire (MW)', 'Hydraulique (MW)', 'Pompage (MW)', 'Bioénergies (MW)', 'Eolien (MW)']].sum(axis=1)
+    df_energie["Production_totale (MW)"] = df_energie[["Total_NonRenouvelable (MW)", "Total_Renouvelable (MW)"]].sum(axis=1)
+
+    return df_energie 
+
+
+# Fonction pour créer df_group
+@st.cache_data
+def get_df_group(df_energie):
+    # Agrégation des données par période et Code INSEE région
+    df_group = df_energie.groupby(['PERIODE', 'Code INSEE région']).agg({'Consommation (MW)': 'sum'}).reset_index()
+    
+    # Convertir 'Code INSEE région' en entier
+    df_group['Code INSEE région'] = df_group['Code INSEE région'].astype(int)
+    
+    # Convertir 'PERIODE' en datetime
+    df_group['PERIODE'] = pd.to_datetime(df_group['PERIODE'])
+    
+    # Définir 'PERIODE' comme index
+    df_group.set_index('PERIODE', inplace=True)
+    
+    return df_group
+
+
+# Fonction pour créer conso
+@st.cache_data
+def get_conso(df_energie):
+    # Agrégation des données par période
+    conso = df_energie.groupby('PERIODE').agg({'Consommation (MW)': 'sum'}).reset_index()
+    
+    # Convertir 'PERIODE' en datetime
+    conso['PERIODE'] = pd.to_datetime(conso['PERIODE'])
+    
+    # Définir 'PERIODE' comme index
+    conso.set_index('PERIODE', inplace=True)
+    
+    return conso
+
+   
+# Fonction pour obtenir df_energie
+@st.cache_data
+def get_df_energie():
+    df = import_df()
+    df2 = import_df2()
+    return modif_df(df, df2)
+
+
+# Fonction pour obtenir df_conso_prod
+@st.cache_data
+def get_df_conso_prod():
+    df_energie = modif_df(import_df(), import_df2())
 
     # Agréger les données par année pour obtenir la consommation et la production totales
     df_conso_prod = df_energie.groupby('Annee').agg({
@@ -37,11 +180,13 @@ def modif_df(df_energie):
         'Total_NonRenouvelable (MW)': 'sum',
         'Total_Renouvelable (MW)': 'sum'
     }).reset_index()
-
+    
     # Exclure les lignes où l'année est 2024
     df_conso_prod = df_conso_prod[df_conso_prod['Annee'] != 2024]
-    
-    return df_energie, df_conso_prod
+    return df_conso_prod
+
+
+
 
 @st.cache_data
 def create_fig_1(df):
@@ -85,28 +230,62 @@ def create_fig_1(df):
     
     st.plotly_chart(fig)
     
-# @st.cache_data
-# def create_fig_2(df):
-#     # Création d'un camembert représentant en % la consommation d'énergie par Région
-#     fig = px.pie(df, values='Consommation (MW)', names='Région',
-#                     title=f"Consommation d'énergie par région en France pour l'année 2021")
+@st.cache_data
+def create_fig_2(df):
+    # Création d'un camembert représentant en % la consommation d'énergie par Région
+    fig = px.pie(df, values='Consommation (MW)', names='Région',
+                    title=f"Consommation d'énergie par région en France pour l'année 2021")
 
-#     fig.update_layout(
-#         width=600,  # largeur en pixels
-#         height=600,  # hauteur en pixels
-#         legend=dict(
-#             orientation="h",  # 'h' horizontal
-#             # yanchor="bottom",  # ancrer en haut
-#             # y=1,  # place la légende à la hauteur du graphique
-#             # xanchor="left",  # ancrer à gauche
-#             # x=-0.3  # déplacer légèrement la légende vers la gauche
-#             font=dict(size=12, color='black')  # Police et couleur du texte de la légend
-#         )
-#     )
+    fig.update_layout(
+        width=600,  # largeur en pixels
+        height=600,  # hauteur en pixels
+        legend=dict(
+            orientation="h",  # 'h' horizontal
+            # yanchor="bottom",  # ancrer en haut
+            # y=1,  # place la légende à la hauteur du graphique
+            # xanchor="left",  # ancrer à gauche
+            # x=-0.3  # déplacer légèrement la légende vers la gauche
+            font=dict(size=12, color='black')  # Police et couleur du texte de la légend
+        )
+    )
 
     # Afficher le camembert
-    # st.plotly_chart(fig)
+    st.plotly_chart(fig)
     
+
+# @st.cache_data
+# def create_fig_3(df):
+    # # Affichage cartes consommation par Région en 2021
+    # #Position [latitude, longitude] sur laquelle est centrée la carte
+    # location = [47, 1]
+
+    # #Niveau de zoom initial :
+    # #3-4 pour un continent, 5-6 pour un pays, 11-12 pour une ville
+    # zoom = 6
+
+    # #Style de la carte
+    # tiles = 'cartodbpositron'
+
+    # Carte = folium.Map(location = location,
+    #                 zoom_start = zoom,
+    #                 tiles = tiles)
+
+    # json = pd.read_json('regions.geojson')
+
+    # folium.Choropleth(
+    #     geo_data='regions.geojson',
+    #     name="choropleth",
+    #     data=df,
+    #     columns=['Région', "Consommation (MW)"],
+    #     key_on="feature.properties.nom",
+    #     fill_color="Blues",
+    #     fill_opacity=0.7,
+    #     line_opacity=0.2,
+    #     legend_name="Consommation (MW)",
+    # ).add_to(Carte)
+    # st_folium(Carte)
+
+
 
 def data_2021(data):
     df_energie = data
@@ -155,8 +334,8 @@ def data_2021(data):
         # Afficher le camembert
         
 
-    # with col2:
-    #     create_fig_2(df_2021)
+    with col2:
+        create_fig_2(df_2021)
 
     st.divider()
 

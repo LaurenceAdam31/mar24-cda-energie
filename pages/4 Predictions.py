@@ -2,53 +2,51 @@ from joblib import load
 import pandas as pd
 import streamlit as st
 import datetime
-from matplotlib import pyplot as plt
 from utils import import_data as imda
 import plotly.express as px
 
+# Chargement du modèle
 model_national = load('model_national.pkl')
 
-df_conso = imda.import_df("df_conso.csv")
-df_conso.drop(df_conso.columns[0], axis=1, inplace=True)
+# IMPORTATION DES DATAFRAMES
+df = imda.import_df()   # Chargement du premier dataset
+df2 = imda.import_df2()  # Chargement du second dataset
 
-# Convertir la colonne 'Date' en format datetime
-df_conso['Date'] = pd.to_datetime(df_conso['Date'], errors='coerce')
+#IMPORT DU DATAFRAME CONSO
+df_energie = imda.modif_df(df, df2)
+conso = imda.get_conso(df_energie)
 
-# Extraire l'année et le mois au format 'AAAA-MM' et créer une nouvelle colonne 'PERIODE'
-df_conso['PERIODE'] = df_conso['Date'].dt.strftime('%Y-%m')
-conso = df_conso.groupby('PERIODE').agg({
-    'Consommation (MW)': 'sum'
-}).reset_index()
-conso['PERIODE'] = pd.to_datetime(conso['PERIODE'], format='%Y-%m')
-conso.set_index('PERIODE', inplace=True)
-
+# Création de colonnes pour les entrées de dates
 col1, col2 = st.columns(2)
 
-d = col1.date_input('Date début', "today")
+# Saisie des dates de début et de fin
+d = col1.date_input('Date début', datetime.date.today())
 f = col2.date_input('Date fin', datetime.date(datetime.datetime.now().year + 1, 9, 1))
 
+# Faire la prédiction en fonction des dates saisies
 if d >= datetime.date(2021, 1, 1):
-    prediction = model_national.get_prediction(start = d, end = f)
+    prediction = model_national.get_prediction(start=d, end=f)
 else:
-    prediction = model_national.get_prediction(start = pd.to_datetime('2021-01-01'), end = f)
-    
-    
+    prediction = model_national.get_prediction(start=pd.to_datetime('2021-01-01'), end=f)
+
 predicted_consumption = prediction.predicted_mean
 
+# Création du DataFrame pour les prédictions
+pred = pd.DataFrame({
+    'PERIODE': predicted_consumption.index,
+    'Consommation (MW)': predicted_consumption.values
+})
 
+# Création du graphique
+fig = px.line(pred, x="PERIODE", y="Consommation (MW)", color_discrete_sequence=["#4CC005"], labels={'y': 'Consommation (MW)'})
 
-conso.reset_index(inplace=True)
-
-
-pred = pd.DataFrame({'index' : predicted_consumption.index, 'Consommation (MW)' : predicted_consumption}).reset_index(drop=True)
-
-fig = px.line(pred, x = "index", y = "Consommation (MW)", color_discrete_sequence=["#4CC005"], labels={'y': 'Stock'})
-
+# Filtrage des données antérieures à 2021
 if d < datetime.date(2021, 1, 1):
-    conso = conso[(conso['PERIODE'] > pd.to_datetime(d)) & (conso['PERIODE'] < pd.to_datetime('2021-01-01'))]
-    fig.add_scatter(x = conso["PERIODE"], y = conso["Consommation (MW)"], mode = 'lines', name='Prediction', line=dict(color='#0514C0'))
+    filtered_conso = conso[(conso.index > pd.to_datetime(d)) & (conso.index < pd.to_datetime('2021-01-01'))]
+    fig.add_scatter(x=filtered_conso.index, y=filtered_conso["Consommation (MW)"], mode='lines', name='Historique', line=dict(color='#0514C0'))
 
+# Mise à jour du layout du graphique
+fig.update_layout(title='Consommation vs Prédiction', xaxis_title='Date', yaxis_title='Consommation (MW)')
 
-fig.update_layout(title='Stock vs Prediction', xaxis_title='Date', yaxis_title='Value')
-
+# Affichage du graphique
 st.plotly_chart(fig, use_container_width=True)
