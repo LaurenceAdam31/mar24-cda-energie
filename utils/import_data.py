@@ -112,38 +112,45 @@ def modif_df(df, df2):
     return df_energie
 
 
-# Fonction pour prétraiter les données avant l'agrégation
-def preprocess_group(df_energie, group_by_columns, sum_column):
-    # Agrégation des données
-    aggregated = df_energie.groupby(group_by_columns).agg({sum_column: 'sum'}).reset_index()
-    
-    # Convertir 'Code INSEE région' en entier s'il existe
-    if 'Code INSEE région' in aggregated.columns:
-        aggregated['Code INSEE région'] = aggregated['Code INSEE région'].astype(int)
-    
-    # Convertir 'PERIODE' en datetime si elle existe
-    if 'PERIODE' in aggregated.columns:
-        aggregated['PERIODE'] = pd.to_datetime(aggregated['PERIODE'])
-    
-    # Définir 'PERIODE' comme index
-    if 'PERIODE' in aggregated.columns:
-        aggregated.set_index('PERIODE', inplace=True)
-    
-    # Exclusion de la période '2024-10-01'
-    aggregated = aggregated.drop(pd.Timestamp('2024-10-01'), errors='ignore')
-    
-    return aggregated
 
 # Fonction pour créer df_group
 @st.cache_data
 def get_df_group(df_energie):
-    return preprocess_group(df_energie, ['PERIODE', 'Code INSEE région'], 'Consommation (MW)')
+    # Agrégation des données par période et Code INSEE région
+    df_group = df_energie.groupby(['PERIODE', 'Code INSEE région']).agg({'Consommation (MW)': 'sum'}).reset_index()
+    
+    # Convertir 'Code INSEE région' en entier
+    df_group['Code INSEE région'] = df_group['Code INSEE région'].astype(int)
+    
+    # Convertir 'PERIODE' en datetime
+    df_group['PERIODE'] = pd.to_datetime(df_group['PERIODE'])
+    
+    # Définir 'PERIODE' comme index
+    df_group.set_index('PERIODE', inplace=True)
+    
+    # Exclusion de la période '2024-10-01'
+    df_group = df_group.drop(pd.Timestamp('2024-10-01'), errors='ignore')
+    
+    return df_group
+
 
 # Fonction pour créer conso
 @st.cache_data
 def get_conso(df_energie):
-    # Regrouper uniquement par PERIODE
-    return preprocess_group(df_energie, ['PERIODE'], 'Consommation (MW)')
+    # Agrégation des données par période
+    conso = df_energie.groupby('PERIODE').agg({'Consommation (MW)': 'sum'}).reset_index()
+    
+    # Convertir 'PERIODE' en datetime
+    conso['PERIODE'] = pd.to_datetime(conso['PERIODE'])
+    
+    # Exclusion de la période '2024-10-01'
+    conso = conso.drop(pd.Timestamp('2024-10-01'), errors='ignore')
+
+    # Définir 'PERIODE' comme index
+    conso.set_index('PERIODE', inplace=True)
+    
+    return conso
+
    
 # Fonction pour obtenir df_energie
 @st.cache_data
@@ -156,7 +163,7 @@ def get_df_energie():
 # Fonction pour obtenir df_conso_prod
 @st.cache_data
 def get_df_conso_prod():
-    df_energie = get_df_energie()  # Récupérer les données modifiées
+    df_energie = modif_df(import_df(), import_df2())
 
     # Agréger les données par année pour obtenir la consommation et la production totales
     df_conso_prod = df_energie.groupby('Annee').agg({
@@ -165,11 +172,11 @@ def get_df_conso_prod():
         'Total_NonRenouvelable (MW)': 'sum',
         'Total_Renouvelable (MW)': 'sum'
     }).reset_index()
-
+    
     # Exclure les lignes où l'année est 2024
-    df_conso_prod = df_conso_prod.query('Annee != 2024')
-
+    df_conso_prod = df_conso_prod[df_conso_prod['Annee'] != 2024]
     return df_conso_prod
+
 
 
 
