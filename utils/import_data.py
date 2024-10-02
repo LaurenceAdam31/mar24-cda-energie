@@ -46,125 +46,104 @@ def import_df2():
     df2 = pd.read_csv("eco2mix-regional-tr(2).csv.zip", compression='zip', sep=';')
     return df2
 
-#MODIFICATIONS ET CREATION DE df_energie
+# MODIFICATIONS ET CREATION DE df_energie
 @st.cache_data
 def modif_df(df, df2): 
 
-    # Traitement du premier dataset df
-    df['Code INSEE région'] = df['Code INSEE région'].astype(str).apply(lambda x: f"{int(x)}")
-    df['Date'] = pd.to_datetime(df['Date'], format='%Y-%m-%d', errors='coerce')
-    df['Heure'] = pd.to_datetime(df['Heure'], format='%H:%M', errors='coerce').dt.strftime('%H:%M')
+    # Conversion et harmonisation rapide des dates/heures pour suppression des minutes inutiles
     df['Date - Heure'] = pd.to_datetime(df['Date - Heure'], utc=True, errors='coerce')
-    
-    # SUPPRIMER LES LIGNES DONT LA CONSO N'EST PAS RENSEIGNEE
-    df.dropna(subset=['Consommation (MW)'], axis=0, inplace=True)
-    
-    # SUPPRESSION DES COLONNES NON ÉTUDIÉES AINSI QUE EOLIEN TERRESTRE ET EOLIEN OFFSHORE VIDES AVANT 2021
-    columns_to_drop = [
-    'TCO Thermique (%)', 'TCH Thermique (%)',
-    'TCO Nucléaire (%)', 'TCH Nucléaire (%)', 'TCO Eolien (%)', 'TCH Eolien (%)',
-    'TCO Solaire (%)', 'TCH Solaire (%)', 'TCO Hydraulique (%)', 'TCH Hydraulique (%)',
-    'TCO Bioénergies (%)', 'TCH Bioénergies (%)', 'Column 30',
-    'Stockage batterie', 'Déstockage batterie', 'Eolien terrestre', 'Eolien offshore']
-    
-    df = df.drop(columns=columns_to_drop, errors='ignore')
-    
-    # REMPLACEMENT DES VALEURS MANQUANTES DANS CERTAINES COLONNES PAR 0
-    df['Nucléaire (MW)'] = df['Nucléaire (MW)'].fillna(0)
-    df['Pompage (MW)'] = df['Pompage (MW)'].fillna(0)
-    
-    # TRAITEMENT DE LA COLONNE 'Eolien (MW)'
-    df['Eolien (MW)'] = df['Eolien (MW)'].replace(['', 'non-disponible'], np.nan)
-    df['Eolien (MW)'] = pd.to_numeric(df['Eolien (MW)'], errors='coerce')  # Remplacer les erreurs par NaN
-    df['Eolien (MW)'] = df['Eolien (MW)'].fillna(0)
-    
-    # CORRECTION DES MESURES PRISES TOUTES LES DEMI-HEURES 
-    df.drop(df[df['Date - Heure'].dt.minute == 30].index, inplace=True)
-    df.reset_index(drop=True, inplace=True)
-    
-    # Traitement du deuxième dataset df2
-    df2['Code INSEE région'] = df2['Code INSEE région'].astype(str).apply(lambda x: f"{int(x)}")
-    df2['Date'] = pd.to_datetime(df2['Date'], format='%Y-%m-%d', errors='coerce')
-    df2['Heure'] = pd.to_datetime(df2['Heure'], format='%H:%M', errors='coerce').dt.strftime('%H:%M')
     df2['Date - Heure'] = pd.to_datetime(df2['Date - Heure'], utc=True, errors='coerce')
-    
-    df2.dropna(subset=['Consommation (MW)'], axis=0, inplace=True)
 
-    df2 = df2.drop(columns=columns_to_drop, errors='ignore')
-    df2['Nucléaire (MW)'] = df2['Nucléaire (MW)'].fillna(0)
+    # Filtrer et ne garder que les lignes avec des minutes égales à 00 (heures pleines) dans les deux DataFrames
+    df = df[df['Date - Heure'].dt.minute == 0].reset_index(drop=True)
+    df2 = df2[df2['Date - Heure'].dt.minute == 0].reset_index(drop=True)
 
-    # Filtrer et supprimer les lignes où les minutes sont 30, 15 ou 45
-    df2.drop(df2[(df2['Date - Heure'].dt.minute == 30) |
-                  (df2['Date - Heure'].dt.minute == 15) |
-                  (df2['Date - Heure'].dt.minute == 45)].index, inplace=True)
+    # Grouper les opérations similaires sur les deux DataFrames
+    for dataset in [df, df2]:
+        # Convertir 'Code INSEE région' en chaîne de caractères
+        dataset['Code INSEE région'] = dataset['Code INSEE région'].astype(str).apply(lambda x: f"{int(x)}")
+        
+        # Convertir 'Date' et 'Heure' en format approprié
+        dataset['Date'] = pd.to_datetime(dataset['Date'], format='%Y-%m-%d', errors='coerce')
+        dataset['Heure'] = dataset['Date - Heure'].dt.strftime('%H:%M')
 
-    df2.reset_index(drop=True, inplace=True)
+        # Supprimer les lignes où la consommation n'est pas renseignée
+        dataset.dropna(subset=['Consommation (MW)'], axis=0, inplace=True)
+        
+        # Supprimer les colonnes inutiles
+        columns_to_drop = [
+            'TCO Thermique (%)', 'TCH Thermique (%)', 'TCO Nucléaire (%)', 'TCH Nucléaire (%)',
+            'TCO Eolien (%)', 'TCH Eolien (%)', 'TCO Solaire (%)', 'TCH Solaire (%)', 
+            'TCO Hydraulique (%)', 'TCH Hydraulique (%)', 'TCO Bioénergies (%)', 'TCH Bioénergies (%)',
+            'Column 30', 'Stockage batterie', 'Déstockage batterie', 'Eolien terrestre', 'Eolien offshore'
+        ]
+        dataset.drop(columns=columns_to_drop, errors='ignore', inplace=True)
 
-    # Concaténer les deux dataframes modifiés
+        # Remplir les valeurs manquantes dans certaines colonnes
+        dataset['Nucléaire (MW)'] = dataset['Nucléaire (MW)'].fillna(0)
+        dataset['Pompage (MW)'] = dataset['Pompage (MW)'].replace(['', 'non-disponible'], np.nan).fillna(0)
+
+        # TRAITEMENT SPECIFIQUE DE LA COLONNE 'Eolien (MW)' POUR df
+        if dataset is df:  # Vérification pour appliquer ce traitement uniquement à df
+            dataset['Eolien (MW)'] = dataset['Eolien (MW)'].replace(['', 'non-disponible'], np.nan)
+            dataset['Eolien (MW)'] = pd.to_numeric(dataset['Eolien (MW)'], errors='coerce').fillna(0)
+
+        # Convertir toutes les colonnes pertinentes en type numérique pour éviter les erreurs de type
+        numeric_cols = ['Consommation (MW)', 'Thermique (MW)', 'Nucléaire (MW)', 'Solaire (MW)',
+                        'Hydraulique (MW)', 'Pompage (MW)', 'Bioénergies (MW)', 'Eolien (MW)']
+        dataset[numeric_cols] = dataset[numeric_cols].apply(pd.to_numeric, errors='coerce')
+
+    # Concaténer les deux DataFrames modifiés
     df_energie = pd.concat([df, df2], ignore_index=True)
-    
-    # Ajout de la colonne 'PERIODE' dans df_energie
+
+    # Harmonisation des colonnes supplémentaires dans df_energie
     df_energie['PERIODE'] = df_energie['Date'].dt.to_period('M').astype(str)
-    
-    # Ajout d'une colonne année et nom du mois en français
     df_energie['Annee'] = df_energie['Date'].dt.year
     df_energie['Mois'] = df_energie['Date'].dt.month.map(lambda x: month_name_fr[x - 1])
 
-    # Déplacer les colonnes "Annee" et "Mois" au début du DataFrame, après la colonne "Heure"
+    # Déplacer les colonnes "Annee" et "Mois" au début du DataFrame, après "Heure"
     df_energie = df_energie[['Date', 'Annee', 'Mois', 'Heure'] + [col for col in df_energie.columns if col not in ['Date', 'Annee', 'Mois', 'Heure']]]
-
-    # Remplacer les valeurs non convertibles par NaN
-    df_energie['Pompage (MW)'] = df_energie['Pompage (MW)'].replace(['', 'non-disponible'], np.nan)
-
-    # Convertir la colonne en float
-    df_energie['Pompage (MW)'] = pd.to_numeric(df_energie['Pompage (MW)'], errors='coerce')
 
     # Création des colonnes de production
     df_energie["Total_NonRenouvelable (MW)"] = df_energie[['Thermique (MW)', 'Nucléaire (MW)']].sum(axis=1)
     df_energie["Total_Renouvelable (MW)"] = df_energie[['Solaire (MW)', 'Hydraulique (MW)', 'Pompage (MW)', 'Bioénergies (MW)', 'Eolien (MW)']].sum(axis=1)
     df_energie["Production_totale (MW)"] = df_energie[["Total_NonRenouvelable (MW)", "Total_Renouvelable (MW)"]].sum(axis=1)
 
-    return df_energie 
+    return df_energie
 
+
+# Fonction pour prétraiter les données avant l'agrégation
+def preprocess_group(df_energie, group_by_columns, sum_column):
+    # Agrégation des données
+    aggregated = df_energie.groupby(group_by_columns).agg({sum_column: 'sum'}).reset_index()
+    
+    # Convertir 'Code INSEE région' en entier s'il existe
+    if 'Code INSEE région' in aggregated.columns:
+        aggregated['Code INSEE région'] = aggregated['Code INSEE région'].astype(int)
+    
+    # Convertir 'PERIODE' en datetime si elle existe
+    if 'PERIODE' in aggregated.columns:
+        aggregated['PERIODE'] = pd.to_datetime(aggregated['PERIODE'])
+    
+    # Définir 'PERIODE' comme index
+    if 'PERIODE' in aggregated.columns:
+        aggregated.set_index('PERIODE', inplace=True)
+    
+    # Exclusion de la période '2024-10-01'
+    aggregated = aggregated.drop(pd.Timestamp('2024-10-01'), errors='ignore')
+    
+    return aggregated
 
 # Fonction pour créer df_group
 @st.cache_data
 def get_df_group(df_energie):
-    # Agrégation des données par période et Code INSEE région
-    df_group = df_energie.groupby(['PERIODE', 'Code INSEE région']).agg({'Consommation (MW)': 'sum'}).reset_index()
-    
-    # Convertir 'Code INSEE région' en entier
-    df_group['Code INSEE région'] = df_group['Code INSEE région'].astype(int)
-    
-    # Convertir 'PERIODE' en datetime
-    df_group['PERIODE'] = pd.to_datetime(df_group['PERIODE'])
-    
-    # Définir 'PERIODE' comme index
-    df_group.set_index('PERIODE', inplace=True)
-    
-    # Exclusion de la période '2024-10-01'
-    df_group = df_group.drop(pd.Timestamp('2024-10-01'), errors='ignore')
-    
-    return df_group
-
+    return preprocess_group(df_energie, ['PERIODE', 'Code INSEE région'], 'Consommation (MW)')
 
 # Fonction pour créer conso
 @st.cache_data
 def get_conso(df_energie):
-    # Agrégation des données par période
-    conso = df_energie.groupby('PERIODE').agg({'Consommation (MW)': 'sum'}).reset_index()
-    
-    # Convertir 'PERIODE' en datetime
-    conso['PERIODE'] = pd.to_datetime(conso['PERIODE'])
-    
-    # Exclusion de la période '2024-10-01'
-    conso = conso.drop(pd.Timestamp('2024-10-01'), errors='ignore')
-
-    # Définir 'PERIODE' comme index
-    conso.set_index('PERIODE', inplace=True)
-    
-    return conso
-
+    # Regrouper uniquement par PERIODE
+    return preprocess_group(df_energie, ['PERIODE'], 'Consommation (MW)')
    
 # Fonction pour obtenir df_energie
 @st.cache_data
@@ -177,7 +156,7 @@ def get_df_energie():
 # Fonction pour obtenir df_conso_prod
 @st.cache_data
 def get_df_conso_prod():
-    df_energie = modif_df(import_df(), import_df2())
+    df_energie = get_df_energie()  # Récupérer les données modifiées
 
     # Agréger les données par année pour obtenir la consommation et la production totales
     df_conso_prod = df_energie.groupby('Annee').agg({
@@ -186,11 +165,11 @@ def get_df_conso_prod():
         'Total_NonRenouvelable (MW)': 'sum',
         'Total_Renouvelable (MW)': 'sum'
     }).reset_index()
-    
-    # Exclure les lignes où l'année est 2024
-    df_conso_prod = df_conso_prod[df_conso_prod['Annee'] != 2024]
-    return df_conso_prod
 
+    # Exclure les lignes où l'année est 2024
+    df_conso_prod = df_conso_prod.query('Annee != 2024')
+
+    return df_conso_prod
 
 
 
