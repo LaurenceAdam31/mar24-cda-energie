@@ -142,6 +142,9 @@ def get_df_group(df_energie):
     # Définir 'PERIODE' comme index
     df_group.set_index('PERIODE', inplace=True)
     
+    # Exclusion de la période '2024-10-01'
+    df_group = df_group.drop(pd.Timestamp('2024-10-01'), errors='ignore')
+    
     return df_group
 
 
@@ -154,6 +157,9 @@ def get_conso(df_energie):
     # Convertir 'PERIODE' en datetime
     conso['PERIODE'] = pd.to_datetime(conso['PERIODE'])
     
+    # Exclusion de la période '2024-10-01'
+    conso = conso.drop(pd.Timestamp('2024-10-01'), errors='ignore')
+
     # Définir 'PERIODE' comme index
     conso.set_index('PERIODE', inplace=True)
     

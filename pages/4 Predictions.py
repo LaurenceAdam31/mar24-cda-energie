@@ -46,7 +46,7 @@ if d < datetime.date(2021, 1, 1):
     fig.add_scatter(x=filtered_conso.index, y=filtered_conso["Consommation (MW)"], mode='lines', name='Historique', line=dict(color='#0514C0'))
 
 # Mise à jour du layout du graphique
-fig.update_layout(title='Consommation vs Prédiction', xaxis_title='Date', yaxis_title='Consommation (MW)')
+fig.update_layout(title='Stock vs Prédiction', xaxis_title='Date', yaxis_title='Consommation (MW)')
 
 # Affichage du graphique
 st.plotly_chart(fig, use_container_width=True)
