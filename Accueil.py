@@ -1,5 +1,6 @@
 import streamlit as st
 import base64
+from utils import import_data as imda
 
 # Configuration de la page
 st.set_page_config(page_title="home", layout="wide")
