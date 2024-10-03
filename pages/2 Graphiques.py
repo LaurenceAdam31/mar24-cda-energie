@@ -26,6 +26,8 @@ if page == "Visualisation Nationale":
     # Appeler les fonctions de visualisation pour la page nationale
     imda.data_2021(df_energie)  # Visualisation des données de 2021
     imda.data_nationale(df_energie)  # Visualisation nationale
+    st.markdown("<h2 class='custom-title'>Affichage de l'évolution de la consommation et de la production sur les années 2013 à 2023 suivant la nature de l'énergie, renouvelable/non renouvelable</h2>", unsafe_allow_html=True)
+    imda.energieprod(df_energie)
 
 elif page == "Visualisation Régionale":
     st.markdown('<h2 class="custom-title">Visualisation Régionale</h2>', unsafe_allow_html=True)

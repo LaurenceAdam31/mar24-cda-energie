@@ -465,3 +465,79 @@ def data_nationale(data):
     chart
 
 
+
+
+#  fonction evolution conso prod 2013 2023 par energie renouvelable et non renouvelable
+
+def energieprod(data):
+
+    
+    df_energie = data
+
+    # Agréger les données par année pour obtenir la consommation et la production totales
+    df_conso_prod = df_energie.groupby('Annee').agg({
+        'Consommation (MW)': 'sum',
+        'Production_totale (MW)': 'sum',
+        'Total_NonRenouvelable (MW)': 'sum',
+        'Total_Renouvelable (MW)': 'sum'
+    }).reset_index()
+
+    # Exclure les lignes où l'année est 2024
+    df_conso_prod = df_conso_prod[df_conso_prod['Annee'] != 2024]
+
+    # Définition des couleurs pour chaque série
+    colors = {
+        'Consommation (MW)': '#636EFA',  # Bleu
+        'Production_totale (MW)':  '#EF553B',  # rouge
+        'Total_NonRenouvelable (MW)': '#FF7F0E',  # orange
+        'Total_Renouvelable (MW)': '#00CC96'  # vert
+    }
+    # Création de la figure
+    fig = go.Figure()
+    
+
+    # Ajout des traces avec les couleurs définies
+    fig.add_trace(go.Scatter(name="Consommation (MW)", x=df_conso_prod.Annee,
+                            y=df_conso_prod['Consommation (MW)'],
+                            line=dict(color=colors['Consommation (MW)'], width=2)))
+
+    fig.add_trace(go.Scatter(name="Production_totale (MW)", x=df_conso_prod.Annee,
+                            y=df_conso_prod['Production_totale (MW)'],
+                            line=dict(color=colors['Production_totale (MW)'], width=2)))
+
+    fig.add_trace(go.Scatter(name="Production énergie Non Renouvelable (MW)", x=df_conso_prod.Annee,
+                            y=df_conso_prod['Total_NonRenouvelable (MW)'],
+                            line=dict(color=colors['Total_NonRenouvelable (MW)'], width=2)))
+
+    fig.add_trace(go.Scatter(name="Production énergie renouvelable (MW)", x=df_conso_prod.Annee,
+                            y=df_conso_prod['Total_Renouvelable (MW)'],
+                            line=dict(color=colors['Total_Renouvelable (MW)'], width=2)))
+
+    # Mise à jour du layout
+    fig.update_layout(
+        title="Évolution de la consommation et de la production d'énergie de 2013 à 2023",
+        xaxis_title="Années",
+        yaxis_title="MW",
+        xaxis=dict(
+            tickformat="%Y",
+            tickangle=45
+        ),
+        legend=dict(
+            orientation="h",  # Légende horizontale
+            y=-0.25,          # Position verticale, en dessous du graphique
+            x=0.5,            # Centre horizontal
+            xanchor="center", # Ancre horizontale
+            yanchor="top",    # Ancre verticale
+            title_text='Légende',  # Titre de la légende
+            bgcolor='rgba(255, 255, 255, 0.7)',  # Fond de la légende semi-transparent
+            font=dict(size=10)  # Taille de la police de la légende
+        ),
+        margin=dict(
+            t=50,   # Marge supérieure pour le titre
+            b=150   # Marge inférieure pour la légende
+        ),
+        width=1000,  # Largeur du graphique
+        height=600   # Hauteur du graphique
+    )
+
+    st.plotly_chart(fig)
