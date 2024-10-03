@@ -7,17 +7,17 @@ def apply_styles():
     st.markdown("""
         <style>
         .big-font {
-            font-size: 50px !important;
+            font-size: 48px !important;
             font-family: system-ui;
             color: #2d3a64; /* Couleur personnalisée pour le titre */
         }
         .medium-font {
-            font-size: 30px !important;
+            font-size: 28px !important;
             font-family: system-ui;
             color: #2d3a64;
         }
         .small-font {
-            font-size: 24px !important; 
+            font-size: 22px !important; 
             font-family: system-ui;
         }
         </style>
@@ -25,6 +25,7 @@ def apply_styles():
 
 # Appel de la fonction pour appliquer les styles
 apply_styles()
+
 
 # Titre principal avec grande taille de police, aligné à gauche
 st.markdown('<p class="big-font">🎯 Présentation du Projet</p>', unsafe_allow_html=True)

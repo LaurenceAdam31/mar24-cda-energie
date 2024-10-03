@@ -30,9 +30,6 @@ if page == "Visualisation Nationale":
 elif page == "Visualisation Régionale":
     st.markdown('<h2 class="custom-title">Visualisation Régionale</h2>', unsafe_allow_html=True)
     st.write("Section de modélisation :")
-  
-  
-  
 
 # Afficher des boutons interactifs pour explorer le dataset
 if st.button("Afficher les premières lignes du dataset d'énergie"):
