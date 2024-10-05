@@ -8,13 +8,10 @@ import plotly.express as px
 # Chargement du modèle
 model_national = load('model_national.pkl')
 
-# IMPORTATION DES DATAFRAMES
-df = imda.import_df()   # Chargement du premier dataset
-df2 = imda.import_df2()  # Chargement du second dataset
 
-#IMPORT DU DATAFRAME CONSO
-df_energie = imda.modif_df(df, df2)
-conso = imda.get_conso(df_energie)
+# Chargement des DataFrames
+df_energie = imda.get_df_energie()  # Charge df_energie depuis CSV
+conso = imda.get_conso(df_energie)  # Charge conso depuis CSV
 
 # Création de colonnes pour les entrées de dates
 col1, col2 = st.columns(2)

@@ -1,4 +1,5 @@
-# Dictionnaire des meilleurs modèles par région
+
+ # Dictionnaire des meilleurs modèles par région
 meilleurs_modeles = {
     "11 - Ile de France": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
     "24 - Centre-Val de Loire": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
@@ -32,13 +33,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from utils import import_data as imda
 
-# IMPORTATION DES DATAFRAMES
-df = imda.import_df()   
-df2 = imda.import_df2()  # 
+# Chargement des DataFrames
+df_energie = imda.get_df_energie()  # Charge df_energie depuis CSV
+df_group = imda.get_df_group(df_energie)  # Charge df_group depuis CSV
 
-#IMPORT DU DATAFRAME df_group
-df_energie = imda.modif_df(df, df2)
-df_group = imda.get_df_group(df_energie)
 
 # # Créer un dictionnaire pour stocker les DataFrames par région
 df_par_region = {}
