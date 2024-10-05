@@ -18,7 +18,7 @@ meilleurs_modeles = {
     "44 - Grand Est": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
     "52 - Pays de la Loire": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
     "53 - Bretagne": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
-    "75- Nouvelle-Aquitaine": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
+    "75 - Nouvelle-Aquitaine": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
     "76 - Occitanie": ('ARIMA', (1, 0, 1), (2, 0, 0, 12)),
     "84 - Auvergne-Rhône-Alpes": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
     "93 - Provence-Alpes-Côte d Azur": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
@@ -84,7 +84,7 @@ if page == "Prediction Nationale":
     if d >= datetime.date(2021, 1, 1):
         prediction = model_national.get_prediction(start=d, end=f)
     else:
-        prediction = model_national.get_prediction(start=pd.to_datetime('2021-01-01'), end=f)
+        prediction = model_national.get_prediction(start=pd.to_datetime('2024-09-01'), end=f)
 
     predicted_consumption = prediction.predicted_mean
     pred_ci = prediction.conf_int()
@@ -95,7 +95,7 @@ if page == "Prediction Nationale":
         'Consommation (MW)': predicted_consumption.values
     })
 
-    start_date = '2021-01-01'
+    start_date = '2024-09-01'
 
     # Visualisation
     plt.figure(figsize=(15, 8))
@@ -104,7 +104,7 @@ if page == "Prediction Nationale":
         plt.plot(filtered_conso, label='Données réelles')
     plt.plot(predicted_consumption, color="orange", label='Prédictions')
     plt.fill_between(pred_ci.index, pred_ci.iloc[:, 0], pred_ci.iloc[:, 1], color='grey', alpha=0.2, label='Intervalle de confiance')
-    if d <= datetime.date(2021, 1, 1):
+    if d <= datetime.date(2024, 9, 1):
         plt.axvline(x=pd.to_datetime(start_date), color='red', linestyle='--', label='Date de début des prédictions')
     plt.legend()
     plt.grid(True)
@@ -143,13 +143,13 @@ elif page == "Prediction Régionale":
         region_code = region_selection.split(' - ')[0]
         df_region = df_par_region[int(region_code)].drop(columns=['Code INSEE région'])
         modele_info = meilleurs_modeles.get(region_selection)
-        st.dataframe(df_par_region[int(region_code)])
+        
         if modele_info:
             best_model = creer_modele(df_region, modele_info)
-            start_date = '2021-01-01'
+            start_date = '2024-09-01'
             end_date = '2024-12-01'
             # Faire la prédiction en fonction des dates saisies
-            if d >= datetime.date(2021, 1, 1):
+            if d >= datetime.date(2024, 9, 1):
                 pred = best_model.get_prediction(start=d, end=f)
             else:
                 pred = best_model.get_prediction(start=pd.to_datetime(start_date), end=f)
