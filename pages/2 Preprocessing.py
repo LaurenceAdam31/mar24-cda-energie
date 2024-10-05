@@ -3,17 +3,7 @@ import pandas as pd
 import numpy as np
 from utils import import_data as imda
 
-#IMPORT DU FICHIER CONSOLIDE ECO2MIX REGIONAL
-@st.cache_data
-def import_df():
-    df = pd.read_csv("eco2mix-regional-cons-def.csv.zip", compression='zip', sep=';')
-    return df
 
-#IMPORT DU FICHIER TEMPS REEL 
-@st.cache_data
-def import_df2():
-    df2 = pd.read_csv("eco2mix-regional-tr(2).csv.zip", compression='zip', sep=';')
-    return df2
 
 # Appliquer les styles
 imda.apply_styles()
@@ -44,7 +34,7 @@ st.markdown("""
 
 
 # Import de df
-df = imda.import_df() 
+df = imda.get_df_energie()
 
 # Affiche un aperçu des données initiales
 #st.markdown('<p class="small-font">Dimension des données initiales Eco2Mix Régional consolidées:</p>', unsafe_allow_html=True)

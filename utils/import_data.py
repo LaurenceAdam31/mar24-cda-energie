@@ -54,7 +54,6 @@ def get_df_group(df_energie):
     df_group.set_index('PERIODE', inplace=True)
     return exclude_period(df_group)
 
-
 # Fonction pour obtenir conso
 def get_conso(df_energie):
     conso = df_energie.groupby('PERIODE').agg({'Consommation (MW)': 'sum'}).reset_index()

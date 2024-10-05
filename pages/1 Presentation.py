@@ -7,17 +7,17 @@ def apply_styles():
     st.markdown("""
         <style>
         .big-font {
-            font-size: 48px !important;
+            font-size: 35px !important;
             font-family: system-ui;
             color: #2d3a64; /* Couleur personnalisée pour le titre */
         }
         .medium-font {
-            font-size: 28px !important;
+            font-size: 25px !important;
             font-family: system-ui;
             color: #2d3a64;
         }
         .small-font {
-            font-size: 22px !important; 
+            font-size: 20px !important; 
             font-family: system-ui;
         }
         </style>
@@ -34,8 +34,8 @@ st.markdown('<p class="big-font">🎯 Présentation du Projet</p>', unsafe_allow
 st.markdown("""
 <p class='medium-font'><b>Objectifs :</b></p>
 <ul>
-    <li style="font-size: 24px; font-family: system-ui;">Observer la consommation et la production d'énergie</li>
-    <li style="font-size: 24px; font-family: system-ui;">En déduire une prévision de consommation</li>
+    <li style="font-size: 20px; font-family: system-ui;">Observer la consommation et la production d'énergie</li>
+    <li style="font-size: 20px; font-family: system-ui;">En déduire une prévision de consommation</li>
 </ul>
 """, unsafe_allow_html=True)
 
