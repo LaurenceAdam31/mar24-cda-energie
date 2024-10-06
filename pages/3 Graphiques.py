@@ -14,7 +14,7 @@ imda.apply_styles()
 df_energie = imda.get_df_energie()  
 
 # MODIFICATION DES DONNÉES
-df_conso_prod = imda.get_df_conso_prod()  # Récupérer les données agrégées
+df_conso_prod = imda.get_df_conso_prod(df_energie)  # Récupérer les données agrégées
 
 # SIDEBAR A GAUCHE CLASSIQUE
 st.sidebar.title("Graphiques")
