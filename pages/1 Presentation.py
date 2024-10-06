@@ -7,17 +7,17 @@ def apply_styles():
     st.markdown("""
         <style>
         .big-font {
-            font-size: 48px !important;
+            font-size: 35px !important;
             font-family: system-ui;
             color: #2d3a64; /* Couleur personnalisée pour le titre */
         }
         .medium-font {
-            font-size: 28px !important;
+            font-size: 25px !important;
             font-family: system-ui;
             color: #2d3a64;
         }
         .small-font {
-            font-size: 22px !important; 
+            font-size: 20px !important; 
             font-family: system-ui;
         }
         </style>
@@ -34,14 +34,14 @@ st.markdown('<p class="big-font">🎯 Présentation du Projet</p>', unsafe_allow
 st.markdown("""
 <p class='medium-font'><b>Objectifs :</b></p>
 <ul>
-    <li style="font-size: 24px; font-family: system-ui;">Observer la consommation et la production d'énergie</li>
-    <li style="font-size: 24px; font-family: system-ui;">En déduire une prévision de consommation</li>
+    <li style="font-size: 20px; font-family: system-ui;">Observer la consommation et la production d'énergie</li>
+    <li style="font-size: 20px; font-family: system-ui;">En déduire une prévision de consommation</li>
 </ul>
 """, unsafe_allow_html=True)
 
 # Etapes du Projet
 st.markdown("""
-<p class='medium-font'><b>Etapes du projet :</b></p>
+<p class='medium-font'><b>Méthodologie :</b></p>
 <ul>
      <li style="font-size: 24px; font-family: system-ui;">Explorer, nettoyer et enrichir le jeu de données</li>
     <li style="font-size: 24px; font-family: system-ui;">Analyser l'évolution de la consommation et la production d'énergie au niveau national</li>
@@ -50,12 +50,31 @@ st.markdown("""
 </ul>
 """, unsafe_allow_html=True)
 
-# Méthodologie
+# Présentation du Jeu de données
 st.markdown("""
-<p class='medium-font'><b>Afin de collaborer et de travailler en équipe nous avons :</b></p>
+<p class='medium-font'><b>Jeux de données utilisés :</b></p>
 <ul>
-    <li style="font-size: 24px; font-family: system-ui;">Mis en place un espace commun sur google drive</li>
-    <li style="font-size: 24px; font-family: system-ui;">Utilisé google colab pour nos codes python</li>
-    <li style="font-size: 24px; font-family: system-ui;">Communiqué régulièrement via slack</li>
-    <li style="font-size: 24px; font-family: system-ui;">Travaillé collectivement sur steamlit via github</li>
+     <li style="font-size: 24px; font-family: system-ui;">
+         Dataset "<a href='https://odre.opendatasoft.com/explore/dataset/eco2mix-regional-cons-def/information/?disjunctive.libelle_region&disjunctive.nature' target='_blank'>Eco2mix Régional</a>" de janvier 2013 à janvier 2023
+     </li>
+    <li style="font-size: 24px; font-family: system-ui;">
+        Données régionales "<a href='https://odre.opendatasoft.com/explore/dataset/eco2mix-regional-tr/export/?disjunctive.libelle_region&disjunctive.nature' target='_blank'>Temps réel</a>" de février 2023 à juin 2024
+    </li>
+</ul>
 """, unsafe_allow_html=True)
+
+# IMPORTATION DU DATASET df_energie
+df_energie = imda.get_df_energie()  
+
+# TODO FAIRE EN PLUS DES PETITS BOUTONS INTERACTIFS 
+if st.button("Afficher les premières lignes du dataset d'énergie"):
+    st.dataframe(df_energie.head())
+
+if st.button("Afficher les dernières lignes du dataset d'énergie"):
+    st.dataframe(df_energie.tail())
+
+if st.button("Afficher les colonnes du dataset d'énergie"):
+    st.write(df_energie.columns)
+
+if st.button("Afficher les colonnes et types du dataset d'énergie"):
+    st.write(df_energie.dtypes)
