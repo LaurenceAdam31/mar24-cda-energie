@@ -20,12 +20,12 @@ def apply_styles():
             color: #2d3a64; /* Couleur personnalisée pour le titre */
         }
         .medium-font {
-            font-size: 30px !important;
+            font-size: 35px !important;
             font-family: system-ui;
             color: #2d3a64;
         }
         .small-font {
-            font-size: 24px !important; 
+            font-size: 20px !important; 
             font-family: system-ui;
         }
         </style>
