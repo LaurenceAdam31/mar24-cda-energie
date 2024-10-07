@@ -31,6 +31,7 @@ def exclude_period(dataframe, periods_to_exclude=['2024-10-01']):
         dataframe = dataframe.drop(pd.Timestamp(period), errors='ignore')
     return dataframe
 
+
 # Fonction pour charger le DataFrame df_energie à partir d'un fichier CSV compressé
 @st.cache_data
 def get_df_energie():
@@ -140,8 +141,7 @@ def data_2021(data):
     df_2021 = data[data["Annee"] == 2021]
     return df_2021
    
-
-
+#Fonction pour créer le graphique national
 @st.cache_data
 def test_bernard(data):
     df_energie = data
@@ -157,7 +157,6 @@ def test_bernard(data):
     }
         # Création de la figure
     fig = go.Figure()
-    
     # Ajout des traces avec les couleurs définies
     fig.add_trace(go.Scatter(name="Consommation (MW)", x=df_conso_prod.Annee,
                             y=df_conso_prod['Consommation (MW)'],
@@ -178,7 +177,6 @@ def test_bernard(data):
     # Trouver la valeur maximale pour définir la plage de l'axe Y
     max_y = df_conso_prod[['Consommation (MW)', 'Production_totale (MW)', 
                             'Total_NonRenouvelable (MW)', 'Total_Renouvelable (MW)']].max().max()
-    
     # Mise à jour du layout
     fig.update_layout(
         title="Évolution de la consommation et de la production d'énergie de 2013 à 2023",
@@ -206,6 +204,7 @@ def test_bernard(data):
         height=600   # Hauteur du graphique
     )
     st.plotly_chart(fig)
+    
 
     @st.cache_data
     def data_2021(data):
@@ -318,10 +317,13 @@ def create_fig4(df_2021):
 
 @st.cache_data
 def create_fig5(df_2021):
+    # Filtrer uniquement les colonnes nécessaires pour optimiser
+    df_filtered = df_2021[['Région', 'Total_NonRenouvelable (MW)', 'Total_Renouvelable (MW)']].copy()
+
     # Reshape data for bar plot
-    df_melted = df_2021.melt(id_vars=["Région"],
-                             value_vars=["Total_NonRenouvelable (MW)", "Total_Renouvelable (MW)"],
-                             var_name="Type", value_name="Production")
+    df_melted = df_filtered.melt(id_vars=["Région"],
+                                 value_vars=["Total_NonRenouvelable (MW)", "Total_Renouvelable (MW)"],
+                                 var_name="Type", value_name="Production")
     
     # Création du graphique à barres groupées
     fig = px.bar(df_melted, x="Région", y="Production", color="Type",
@@ -331,21 +333,16 @@ def create_fig5(df_2021):
                  color_discrete_sequence=['#FF7F0E', '#00CC96'],
                  opacity=0.6
             )
-
-    # Mise en place de la légende en dessous et définition de la taille du graphique
+    
+    # Optimisation de l'apparence et des performances
     fig.update_layout(
-        legend=dict(
-            orientation="h",  # Orientation horizontale
-            xanchor="center", # Centre la légende horizontalement
-            x=0.5,            # Place la légende au centre de la largeur du graphique
-            yanchor="top",    # Ancre la légende au bas du graphique
-            y=-0.3           # Ajuste la distance verticale pour positionner la légende en dessous
-        ),
-        height=600,  # Hauteur du graphique
-        width=1000   # Largeur du graphique
+        xaxis_tickangle=-45,  # Rotation des labels pour améliorer la lisibilité
+        autosize=False,       # Fixer la taille pour éviter le redimensionnement dynamique trop lourd
+        height=600,           # Taille spécifique pour ne pas utiliser la taille par défaut
+        margin=dict(l=40, r=40, t=40, b=40),  # Marges plus petites pour éviter des espaces inutiles
     )
-    return fig
 
+    return fig
 
 
 

@@ -28,7 +28,7 @@ st.markdown('<p class="big-font">📊 Visualisations</p>', unsafe_allow_html=Tru
 
 # SIDEBAR A GAUCHE CLASSIQUE
 st.sidebar.title("Graphiques")
-pages = ["Visualisation Nationale", "Visualisation Régionale"]
+pages = ["Visualisation Nationale", "Visualisation Régionale", "Sources d'énergie"]
 page = st.sidebar.radio("Aller vers", pages)
 
 # SWITCH SUR LA PAGE DE VISUALISATION
@@ -73,15 +73,18 @@ elif page == "Visualisation Régionale":
 
     # Deuxième expander pour la deuxième ligne de graphiques
     with st.expander("Afficher les graphiques de phasage et de production en 2021"):
-        # Créer deux colonnes pour la deuxième ligne
-        col3, col4 = st.columns(2)
 
-        # Histogramme de phasage régional dans la première colonne de la deuxième ligne
-        with col3:
-            fig4 = imda.create_fig4(df_2021)  # Créer le graphique
-            st.plotly_chart(fig4)  # Afficher le graphique
+        fig4 = imda.create_fig4(df_2021)  # Créer le graphique
+        st.plotly_chart(fig4)  # Afficher le graphique
+            
 
-        # Graphique de production dans la deuxième colonne de la deuxième ligne
-        with col4:
-            fig5 = imda.create_fig5(df_2021)  # Créer le graphique
-            st.plotly_chart(fig5)  # Afficher le graphique
+            
+elif page == "Sources d'énergie":
+    st.markdown('<p class="medium-font"><b>Production 2021 par type de source d\'énergie</b></p>', unsafe_allow_html=True)
+    
+    # IMPORTATION DU DATASET df_energie
+    df_energie = imda.get_df_energie()
+    df_2021 = df_energie[df_energie["Annee"] == 2021]
+
+    fig5 = imda.create_fig5(df_2021)  # Créer le graphique
+    st.plotly_chart(fig5)  # Afficher le graphique
