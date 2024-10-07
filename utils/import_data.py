@@ -14,20 +14,9 @@ import os
 def apply_styles():
     st.markdown("""
         <style>
-        .big-font {
-            font-size: 50px !important;
-            font-family: system-ui;
-            color: #2d3a64; /* Couleur personnalisée pour le titre */
-        }
-        .medium-font {
-            font-size: 30px !important;
-            font-family: system-ui;
-            color: #2d3a64;
-        }
-        .small-font {
-            font-size: 24px !important; 
-            font-family: system-ui;
-        }
+        .big-font { font-size: 50px !important; font-family: system-ui; color: #2d3a64; }
+        .medium-font { font-size: 30px !important; font-family: system-ui; color: #2d3a64; }
+        .small-font { font-size: 24px !important; font-family: system-ui; }
         </style>
     """, unsafe_allow_html=True)
 
@@ -36,9 +25,11 @@ month_name_fr = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
                  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 
 # Fonction pour exclure les périodes spécifiques
-def exclude_period(dataframe, period_to_exclude='2024-10-01'):
-    # Supprime la période spécifiée si elle est présente
-    return dataframe.drop(pd.Timestamp(period_to_exclude), errors='ignore')
+def exclude_period(dataframe, periods_to_exclude=['2024-10-01']):
+    """ Exclut les périodes spécifiées du DataFrame. """
+    for period in periods_to_exclude:
+        dataframe = dataframe.drop(pd.Timestamp(period), errors='ignore')
+    return dataframe
 
 # Fonction pour charger le DataFrame df_energie à partir d'un fichier CSV compressé
 @st.cache_data
@@ -55,6 +46,7 @@ def get_df_group(df_energie):
     return exclude_period(df_group)
 
 # Fonction pour obtenir conso
+@st.cache_data
 def get_conso(df_energie):
     conso = df_energie.groupby('PERIODE').agg({'Consommation (MW)': 'sum'}).reset_index()
     conso['PERIODE'] = pd.to_datetime(conso['PERIODE'])
@@ -62,6 +54,7 @@ def get_conso(df_energie):
     return exclude_period(conso)
 
 # Fonction pour obtenir df_conso_prod
+@st.cache_data
 def get_df_conso_prod(df_energie):
     df_conso_prod = df_energie.groupby('Annee').agg({
         'Consommation (MW)': 'sum',
@@ -72,19 +65,30 @@ def get_df_conso_prod(df_energie):
     df_conso_prod = df_conso_prod[df_conso_prod['Annee'] != 2024]
     return df_conso_prod
 
-
+# Définir une couleur spécifique pour chaque région
+couleurs_regions = {
+    'Île-de-France': '#1f77b4',   # Bleu
+    'Auvergne-Rhône-Alpes': '#ff7f0e',   # Orange
+    'Provence-Alpes-Côte d\'Azur': '#2ca02c',   # Vert
+    'Bretagne': '#d62728',   # Rouge
+    'Normandie': '#9467bd',   # Violet
+    'Nouvelle-Aquitaine': '#8c564b',   # Marron
+    'Occitanie': '#e377c2',   # Rose
+    'Pays de la Loire': '#7f7f7f',   # Gris
+    'Hauts-de-France': '#bcbd22',   # Vert clair
+    'Grand Est': '#17becf',   # Bleu clair
+    'Centre-Val de Loire': '#ffbb78',   # Jaune foncé
+    'Bourgogne-Franche-Comté': '#f7b6d2'  # Rose clair
+}
 
 @st.cache_data
 def create_fig_1(df):
     # Créer le camembert avec Plotly Express
     fig = px.pie(df, values='Pourcentage (%)', names='Type d\'énergie',
                 title="Production d'énergie par type en France en 2021 en pourcentage")
-
     # Personnaliser les couleurs du camembert
     colors = ['#EF553B', '#636EFA', '#B6E880', '#FECB52', '#19D3F3', '#AB63FA', '#FFA15A', 'gray']
     fig.update_traces(marker=dict(colors=colors))
-
-
     # Ajouter un titre au centre
     fig.update_layout(title={
         'text': "Sources de production d'énergie en France en 2021",
@@ -93,35 +97,29 @@ def create_fig_1(df):
         'xanchor': 'center',  # Centrer le titre horizontalement
         'yanchor': 'top'      # Aligner le titre en haut
     })
-
-    # Ajouter la légende en dessous du camembert
     fig.update_layout(
         legend=dict(
             orientation='h',  # Orientation horizontale de la légende
             font=dict(size=12, color='black')  # Police et couleur du texte de la légende
         )
     )
-
-    # Définir la taille de la figure
     fig.update_layout(
-        width=600,   # Largeur de la figure en pixels
-        height=600   # Hauteur de la figure en pixels
+        width=550,   # Largeur de la figure en pixels
+        height=550   # Hauteur de la figure en pixels
     )
-
     fig.update_traces(
         textinfo='percent+label',  # Afficher les pourcentages et les labels
         textposition='inside',  # Positionner les textes à l'intérieur des segments
         marker=dict(line=dict(color='white', width=2))  # Ajouter une bordure blanche entre les segments pour plus de clarté
     )
-    
     st.plotly_chart(fig)
+    
     
 @st.cache_data
 def create_fig_2(df):
     # Création d'un camembert représentant en % la consommation d'énergie par Région
     fig = px.pie(df, values='Consommation (MW)', names='Région',
                     title=f"Consommation d'énergie par région en France pour l'année 2021")
-
     fig.update_layout(
         width=600,  # largeur en pixels
         height=600,  # hauteur en pixels
@@ -134,7 +132,6 @@ def create_fig_2(df):
             font=dict(size=12, color='black')  # Police et couleur du texte de la légend
         )
     )
-
     # Afficher le camembert
     st.plotly_chart(fig)
     
@@ -171,27 +168,11 @@ def create_fig_2(df):
     # ).add_to(Carte)
     # st_folium(Carte)
 
-
-
-# Test Bernard 
-
-
+@st.cache_data
 def test_bernard(data):
-
-    #st.write("Affichage de l'évolution de la consommation et de la production sur les années 2013 à 2023 suivant la nature de l'énergie, renouvelable/non renouvelable")
-
     df_energie = data
-
-    # Agréger les données par année pour obtenir la consommation et la production totales
-    df_conso_prod = df_energie.groupby('Annee').agg({
-        'Consommation (MW)': 'sum',
-        'Production_totale (MW)': 'sum',
-        'Total_NonRenouvelable (MW)': 'sum',
-        'Total_Renouvelable (MW)': 'sum'
-    }).reset_index()
-
-    # Exclure les lignes où l'année est 2024
-    df_conso_prod = df_conso_prod[df_conso_prod['Annee'] != 2024]
+    # Récupérer df_conso_prod
+    df_conso_prod = get_df_conso_prod(data)
 
     # Définition des couleurs pour chaque série
     colors = {
@@ -200,10 +181,9 @@ def test_bernard(data):
         'Total_NonRenouvelable (MW)': '#FF7F0E',  # orange
         'Total_Renouvelable (MW)': '#00CC96'  # vert
     }
-    # Création de la figure
+        # Création de la figure
     fig = go.Figure()
     
-
     # Ajout des traces avec les couleurs définies
     fig.add_trace(go.Scatter(name="Consommation (MW)", x=df_conso_prod.Annee,
                             y=df_conso_prod['Consommation (MW)'],
@@ -220,37 +200,40 @@ def test_bernard(data):
     fig.add_trace(go.Scatter(name="Production énergie renouvelable (MW)", x=df_conso_prod.Annee,
                             y=df_conso_prod['Total_Renouvelable (MW)'],
                             line=dict(color=colors['Total_Renouvelable (MW)'], width=2)))
-
+    
+    # Trouver la valeur maximale pour définir la plage de l'axe Y
+    max_y = df_conso_prod[['Consommation (MW)', 'Production_totale (MW)', 
+                            'Total_NonRenouvelable (MW)', 'Total_Renouvelable (MW)']].max().max()
+    
     # Mise à jour du layout
     fig.update_layout(
         title="Évolution de la consommation et de la production d'énergie de 2013 à 2023",
-        xaxis_title="Années",
         yaxis_title="MW",
         xaxis=dict(
             tickformat="%Y",
-            tickangle=45
+            tickangle=0,
+            dtick=1  # Afficher toutes les années
         ),
+        yaxis=dict(range=[0, max_y]),  # Définir la plage de l'axe Y
         legend=dict(
             orientation="h",  # Légende horizontale
-            y=-0.25,          # Position verticale, en dessous du graphique
+            y=-0.3,           # Position verticale, en dessous du graphique
             x=0.5,            # Centre horizontal
             xanchor="center", # Ancre horizontale
             yanchor="top",    # Ancre verticale
-            title_text='Légende',  # Titre de la légende
             bgcolor='rgba(255, 255, 255, 0.7)',  # Fond de la légende semi-transparent
-            font=dict(size=10)  # Taille de la police de la légende
+            font=dict(size=14)  # Taille de la police de la légende (plus grand)
         ),
         margin=dict(
             t=50,   # Marge supérieure pour le titre
             b=150   # Marge inférieure pour la légende
         ),
-        width=1000,  # Largeur du graphique
+        width=1300,  # Largeur du graphique
         height=600   # Hauteur du graphique
     )
-
     st.plotly_chart(fig)
 
-
+@st.cache_data
 def data_2021(data):
     df_energie = data
 
@@ -294,87 +277,105 @@ def data_2021(data):
     df_pourcentages.columns = ["Type d'énergie", "Pourcentage (%)"]
 
     with col1:
-        create_fig_1(df_pourcentages)
-        # Afficher le camembert
-        
+        data_nationale(data)
+
 
     with col2:
-        create_fig_2(df_2021)
-
-    st.divider()
-
-    col3, col4 = st.columns(2)
-
-    
-    with col3:
-        st.write('CARTE DE LA CONSOMMATION PAR REGION EN 2021')
-        
-        # Affichage cartes consommation par Région en 2021
-        #Position [latitude, longitude] sur laquelle est centrée la carte
-        location = [47, 1]
-
-        #Niveau de zoom initial :
-        #3-4 pour un continent, 5-6 pour un pays, 11-12 pour une ville
-        zoom = 6
-
-        #Style de la carte
-        tiles = 'cartodbpositron'
-
-        Carte = folium.Map(location = location,
-                        zoom_start = zoom,
-                        tiles = tiles)
-
-        json = pd.read_json('regions.geojson')
-
-        folium.Choropleth(
-            geo_data='regions.geojson',
-            name="choropleth",
-            data=df_2021,
-            columns=['Région', "Consommation (MW)"],
-            key_on="feature.properties.nom",
-            fill_color="Blues",
-            fill_opacity=0.7,
-            line_opacity=0.2,
-            legend_name="Consommation (MW)",
-        ).add_to(Carte)
-        st_folium(Carte)
-        
-
-    with col4:
-
-        # Carte France Production par Région en 2021
-        Carte2 = folium.Map(location = location,
-                        zoom_start = zoom,
-                        tiles = tiles)
-        st.write('CARTE DE LA PRODUCTION PAR REGION EN 2021')
-        folium.Choropleth(
-            geo_data='regions.geojson',
-            name="choropleth",
-            data=df_2021,
-            columns=['Région', "Production_totale (MW)"],
-            key_on="feature.properties.nom",
-            fill_color="Reds",
-            fill_opacity=0.3,
-            line_opacity=0.2,
-            legend_name="Production_totale (MW)",
-        ).add_to(Carte2)
-        st_folium(Carte2)
+        #create_fig_2(data)
+        create_fig_1(df_pourcentages)
 
 
+def create_map(df_2021, title, column, fill_color, legend_name):
+    # Position [latitude, longitude] sur laquelle est centrée la carte
+    location = [47, 1]  # Centrer la carte sur la France
+    zoom = 6
+    tiles = 'cartodbpositron'
+
+    carte = folium.Map(location=location, zoom_start=zoom, tiles=tiles)
+
+    folium.Choropleth(
+        geo_data='regions.geojson',  # Assurez-vous que ce chemin est correct
+        name="choropleth",
+        data=df_2021,
+        columns=['Région', column],
+        key_on="feature.properties.nom",
+        fill_color=fill_color,
+        fill_opacity=0.7,
+        line_opacity=0.2,
+        legend_name=legend_name,
+    ).add_to(carte)
+
+    return carte
+
+@st.cache_data
+def create_fig4(data):
+    # Créer l'histogramme de phasage régional pour 2021
+    fig = px.histogram(
+        data_frame=data,
+        x='Région',
+        y=['Consommation (MW)', 'Production_totale (MW)'],
+        title="Consommation et production d'électricité par région en 2021",
+        labels={'value': 'MW', 'variable': 'Type d\'énergie'},  # Labels personnalisés pour l'axe Y et les légendes
+        opacity=0.8,  # Opacité des barres
+        color_discrete_sequence=['#636EFA', '#EF553B'],  # Couleurs distinctes pour consommation et production
+        barmode='group'  # Barres côte à côte
+    )
+    # Mise à jour de la mise en page pour ajuster la taille
+    fig.update_layout(
+        width=800,  # Largeur de la figure
+        height=600,  # Hauteur de la figure
+        yaxis_title="MW",  # Titre de l'axe Y
+        legend_title="Type d'énergie",  # Titre de la légende
+        title_x=0,  # Centrer le titre
+        margin=dict(l=50, r=50, t=50, b=150),  # Marges pour une meilleure disposition
+        legend=dict(
+            orientation="h",  # Légende horizontale
+            yanchor="top",  # Ancrer la légende en haut
+            y=-0.3,  # Placer la légende en dessous de l'axe x
+            xanchor="center",  # Ancrer la légende au centre horizontalement
+            x=0.5,  # Centrer horizontalement
+            font=dict(size=12)  # Taille de police de la légende
+        )
+    )
+    return fig 
+
+@st.cache_data
+def create_fig5(df_2021):
+    # Reshape data for bar plot
+    df_melted = df_2021.melt(id_vars=["Région"],
+                             value_vars=["Total_NonRenouvelable (MW)", "Total_Renouvelable (MW)"],
+                             var_name="Type", value_name="Production")
+
+    # Création du graphique à barres groupées
+    fig = px.bar(df_melted, x="Région", y="Production", color="Type",
+                 title="Production d'énergie renouvelable et non renouvelable par région en 2021",
+                 labels={"Production": "Production (MW)", "Type": "Type de production"},
+                 barmode='group',
+                 color_discrete_sequence=['#FF7F0E', '#00CC96'],
+                 opacity=0.6
+            )
+
+    # Mise en place de la légende en dessous et définition de la taille du graphique
+    fig.update_layout(
+        legend=dict(
+            orientation="h",  # Orientation horizontale
+            xanchor="center", # Centre la légende horizontalement
+            x=0.5,            # Place la légende au centre de la largeur du graphique
+            yanchor="top",    # Ancre la légende au bas du graphique
+            y=-0.3           # Ajuste la distance verticale pour positionner la légende en dessous
+        ),
+        height=600,  # Hauteur du graphique
+        width=1000   # Largeur du graphique
+    )
+    return fig
+
+
+
+@st.cache_data
 def data_nationale(data):
     df_energie = data
-
-    # Agréger les données par année pour obtenir la consommation et la production totales
-    df_conso_prod = df_energie.groupby('Annee').agg({
-        'Consommation (MW)': 'sum',
-        'Production_totale (MW)': 'sum',
-        'Total_NonRenouvelable (MW)': 'sum',
-        'Total_Renouvelable (MW)': 'sum'
-    }).reset_index()
-
-    # Exclure les lignes où l'année est 2024
-    df_conso_prod = df_conso_prod[df_conso_prod['Annee'] != 2024]
-
+ # Récupérer df_conso_prod
+    df_conso_prod = get_df_conso_prod(data)
     # Création de l'histogramme avec Plotly Express
     fig = px.bar(
         df_conso_prod,
@@ -390,12 +391,12 @@ def data_nationale(data):
 
     # Mise à jour de la mise en page pour ajuster la taille et centrer le titre
     fig.update_layout(
-        width=900,  # Largeur de la figure
-        height=400,  # Hauteur de la figure
+        width=800,  # Largeur de la figure
+        height=600,  # Hauteur de la figure
         xaxis_title="Année",  # Titre de l'axe X
         yaxis_title="MW",  # Titre de l'axe Y
         legend_title="Type d'énergie",  # Titre de la légende
-        title_x=0.5,  # Centrer le titre
+        title_x=0,  # Centrer le titre
         margin=dict(l=50, r=50, t=50, b=50),  # Marges pour une meilleure disposition
         xaxis=dict(
             tickmode='array',  # Utilisation du mode de tick 'array'
@@ -433,7 +434,28 @@ def data_nationale(data):
         x = alt.X("Mois", sort = cats, axis = alt.Axis(title="Mois", labelAngle=45)),
         y = alt.Y('Consommation (MW)', axis = alt.Axis(title="Consommation (MW)")),
         color = alt.Color('Annee', title='Annee')
-    ).properties(width=800, height = 500).interactive()
+    ).properties(width=600, height = 400).interactive()
     chart
+
+
+@st.cache_data
+def create_box_plot(data):
+    # Création du graphique de boîtes animées avec Plotly
+    fig = px.box(data,
+                  x="Région",
+                  y="Consommation (MW)",
+                  animation_frame="Annee",
+                  range_y=[0, 20000],
+                  color="Région",  # Utilisation de la colonne 'Région' pour la coloration
+                  color_discrete_map=couleurs_regions  # Application de la carte de couleur
+                 )
+
+    # Mise à jour de la mise en page
+    fig.update_layout(
+        title="Consommation d'énergie par région de 2015 à 2024",
+        xaxis_title="Région",
+        yaxis_title="Consommation (MW)"
+    )
+    return fig
 
 

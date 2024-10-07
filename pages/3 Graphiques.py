@@ -1,8 +1,11 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import folium
+from streamlit_folium import st_folium
 import plotly.express as px
 from utils import import_data as imda
+from utils.import_data import couleurs_regions 
 
 # CONFIG DE LA PAGE --> AVEC FAVICON
 st.set_page_config(page_title="Projet Energie", page_icon="🌟", layout="wide")
@@ -25,71 +28,58 @@ pages = ["Visualisation Nationale", "Visualisation Régionale"]
 page = st.sidebar.radio("Aller vers", pages)
 
 # SWITCH SUR LA PAGE DE VISUALISATION
+
 if page == "Visualisation Nationale":
     st.markdown('<p class="medium-font"><b>Au niveau National</b></p>', unsafe_allow_html=True)
     # Appeler les fonctions de visualisation pour la page nationale
+    imda.test_bernard(df_energie)
     imda.data_2021(df_energie)  # Visualisation des données de 2021
-    imda.data_nationale(df_energie)  # Visualisation nationale
-    # Test Bernard
-    st.markdown("<h2 class='custom-title'>Affichage de l'évolution de la consommation et de la production sur les années 2013 à 2023 suivant la nature de l'énergie, renouvelable/non renouvelable</h2>", unsafe_allow_html=True)
-    imda.test_bernard(df_energie) 
+    #imda.data_nationale(df_energie)  # Visualisation nationale
+    #imda.test_bernard(df_energie)
 
 
 elif page == "Visualisation Régionale":
     st.markdown('<p class="medium-font"><b>Au niveau Régional</b></p>', unsafe_allow_html=True)
 
-                
     # IMPORTATION DU DATASET df_energie
-    df_energie = imda.get_df_energie()  
-
-    # Filtrer les données à partir de l'année 2015
+    df_energie = imda.get_df_energie() 
+    
+    # Filtrer les données à partir de l'année 2015 pour le graphique Plotly
     df_anim = df_energie[df_energie["Annee"] > 2014].sort_values(by="Annee")
+    
+    # Affichage du graphique Plotly
+    fig = imda.create_box_plot(df_anim)  # Appel de la fonction via imda
+    st.plotly_chart(fig) 
 
-    # Définir une couleur spécifique pour chaque région
-    couleurs_regions = {
-        'Île-de-France': '#1f77b4',   # Bleu
-        'Auvergne-Rhône-Alpes': '#ff7f0e',   # Orange
-        'Provence-Alpes-Côte d\'Azur': '#2ca02c',   # Vert
-        'Bretagne': '#d62728',   # Rouge
-        'Normandie': '#9467bd',   # Violet
-        'Nouvelle-Aquitaine': '#8c564b',   # Marron
-        'Occitanie': '#e377c2',   # Rose
-        'Pays de la Loire': '#7f7f7f',   # Gris
-        'Hauts-de-France': '#bcbd22',   # Vert clair
-        'Grand Est': '#17becf',   # Bleu clair
-        'Centre-Val de Loire': '#ffbb78',   # Jaune foncé
-        'Bourgogne-Franche-Comté': '#f7b6d2'  # Rose clair
-    }
+    # Filtrer les données à partir de l'année 2021
+    df_2021 = df_energie[df_energie["Annee"] == 2021]
 
-    # Création du graphique de boîtes animées avec Plotly
-    fig = px.box(df_anim,
-                x="Région",
-                y="Consommation (MW)",
-                animation_frame="Annee",
-                range_y=[0, 20000],
-                color="Région",  # Utilisation de la colonne 'Région' pour la coloration
-                color_discrete_map=couleurs_regions  # Application de la carte de couleur
-                )
+    # Créer deux colonnes pour les cartes
+    col1, col2 = st.columns(2)
 
-    # Mise à jour de la mise en page
-    fig.update_layout(
-        title="Consommation d'énergie par région de 2015 à 2024",
-        xaxis_title="Région",
-        yaxis_title="Consommation (MW)"
-    )
+    # Carte de consommation par région dans la première colonne
+    with col1:
+        st.write('**CARTE DE LA CONSOMMATION PAR RÉGION EN 2021**')
+        carte_conso = imda.create_map(df_2021, "Consommation (MW)", "Consommation (MW)", "Blues", "Consommation (MW)")
+        st_folium(carte_conso)
 
-    # Intégration du graphique dans Streamlit
-    st.plotly_chart(fig)
+    # Carte de production par région dans la deuxième colonne
+    with col2:
+        st.write('**CARTE DE LA PRODUCTION PAR RÉGION EN 2021**')
+        carte_prod = imda.create_map(df_2021, "Production_totale (MW)", "Production_totale (MW)", "Reds", "Production Totale (MW)")
+        st_folium(carte_prod)
 
-# # Afficher des boutons interactifs pour explorer le dataset
-# if st.button("Afficher les premières lignes du dataset d'énergie"):
-#     st.dataframe(df_energie.head())
+    
+    
+# Créer les colonnes pour la deuxième ligne
+col3, col4 = st.columns(2)
 
-# if st.button("Afficher les dernières lignes du dataset d'énergie"):
-#     st.dataframe(df_energie.tail())
+# Créer et afficher l'histogramme de phasage régional dans la première colonne de la deuxième ligne
+#with col3:
+    #fig4 = imda.create_fig4()  # Assurez-vous que df_2021 est passé correctement
+    #st.plotly_chart(fig4)  # Afficher le graphique
 
-# if st.button("Afficher les colonnes du dataset d'énergie"):
-#     st.write(df_energie.columns)
-
-# if st.button("Afficher les colonnes et types du dataset d'énergie"):
-#     st.write(df_energie.dtypes)
+# Créer et afficher le graphique de production dans la deuxième colonne de la deuxième ligne
+#with col4:
+    #fig5 = imda.create_fig5()  # Appel de la fonction pour créer le graphique de production depuis imda
+    #st.plotly_chart(fig5)  # Afficher le graphique de production
