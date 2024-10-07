@@ -8,6 +8,9 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 from statsmodels.tsa.arima.model import ARIMA
 from matplotlib import pyplot as plt
 
+# CONFIG DE LA PAGE --> AVEC FAVICON
+st.set_page_config(page_title="Projet Energie - prédictions", page_icon="🌟", layout="wide")
+
  # Dictionnaire des meilleurs modèles par région
 meilleurs_modeles = {
     "11 - Ile de France": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
@@ -68,11 +71,19 @@ page = st.sidebar.radio("Aller vers", pages)
 # Chargement des DataFrames
 conso = imda.get_conso(df_energie)  # Charge conso depuis CSV
 
+# Appel de la fonction pour appliquer les styles
+imda.apply_styles()
+
+
+# Titre principal avec grande taille de police, aligné à gauche
+st.markdown('<p class="big-font">📈 Prédictions</p>', unsafe_allow_html=True)
+
+
 
 # SWITCH SUR LA PAGE DE PREDICTION
 if page == "Prediction Nationale":
-    st.title('Prédictions de la consommation électrique nationale')   
-    
+    st.markdown('<p class="medium-font"><b>Prédictions de la consommation électrique nationale</b></p>', unsafe_allow_html=True)
+
     # Création de colonnes pour les entrées de dates
     col1, col2 = st.columns(2)
  
@@ -126,8 +137,8 @@ if page == "Prediction Nationale":
     
 elif page == "Prediction Régionale":
     # Interface Streamlit
-    st.title('Prédictions de la consommation électrique par région')
-    
+    st.markdown('<p class="medium-font"><b>Prédictions de la consommation électrique par région</b></p>', unsafe_allow_html=True)
+
     # Création de colonnes pour les entrées de dates
     col1, col2 = st.columns(2)
 

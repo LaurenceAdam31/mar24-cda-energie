@@ -1,9 +1,10 @@
 import streamlit as st
 import base64
+from utils import import_data as imda
 
 
-# Configuration de la page
-st.set_page_config(page_title="home", layout="wide")
+# CONFIG DE LA PAGE --> AVEC FAVICON
+st.set_page_config(page_title="Projet Energie", page_icon="🌟", layout="wide")
 
 # Bloc unique pour les styles CSS
 st.markdown("""

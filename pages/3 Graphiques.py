@@ -16,6 +16,9 @@ df_energie = imda.get_df_energie()
 # MODIFICATION DES DONNÉES
 df_conso_prod = imda.get_df_conso_prod(df_energie)  # Récupérer les données agrégées
 
+# Titre principal avec grande taille de police, aligné à gauche
+st.markdown('<p class="big-font">📊 Visualisations</p>', unsafe_allow_html=True)
+
 # SIDEBAR A GAUCHE CLASSIQUE
 st.sidebar.title("Graphiques")
 pages = ["Visualisation Nationale", "Visualisation Régionale"]
@@ -23,7 +26,7 @@ page = st.sidebar.radio("Aller vers", pages)
 
 # SWITCH SUR LA PAGE DE VISUALISATION
 if page == "Visualisation Nationale":
-    st.markdown('<h2 class="custom-title">Visualisation Nationale</h2>', unsafe_allow_html=True)
+    st.markdown('<p class="medium-font"><b>Au niveau National</b></p>', unsafe_allow_html=True)
     # Appeler les fonctions de visualisation pour la page nationale
     imda.data_2021(df_energie)  # Visualisation des données de 2021
     imda.data_nationale(df_energie)  # Visualisation nationale
@@ -33,15 +36,7 @@ if page == "Visualisation Nationale":
 
 
 elif page == "Visualisation Régionale":
-    st.markdown('<h2 class="custom-title">Visualisation Régionale</h2>', unsafe_allow_html=True)
-    # st.write("Section de modélisation :")
-    # Titre pour "Étude au niveau Régional" avec style personnalisé
-    st.markdown('<p class="medium-font"><b>Étude au niveau Régional</b></p>', unsafe_allow_html=True)
-
-    # Analyse de la consommation d'énergie par région
-    st.markdown("""
-    <p class='medium-font'><b>Analyse de la consommation d'énergie par région (2015 - 2024) :</b></p>
-    """, unsafe_allow_html=True)
+    st.markdown('<p class="medium-font"><b>Au niveau Régional</b></p>', unsafe_allow_html=True)
 
                 
     # IMPORTATION DU DATASET df_energie

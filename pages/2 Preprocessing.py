@@ -3,29 +3,11 @@ import pandas as pd
 import numpy as np
 from utils import import_data as imda
 
-# Fonction pour appliquer les styles CSS
-def apply_styles():
-    st.markdown("""
-        <style>
-        .big-font {
-            font-size: 50px !important;
-            font-family: system-ui;
-            color: #2d3a64; /* Couleur personnalisée pour le titre */
-        }
-        .medium-font {
-            font-size: 35px !important;
-            font-family: system-ui;
-            color: #2d3a64;
-        }
-        .small-font {
-            font-size: 20px !important; 
-            font-family: system-ui;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+# CONFIG DE LA PAGE --> AVEC FAVICON
+st.set_page_config(page_title="Projet Energie", page_icon="🌟", layout="wide")
 
-# Appliquer les styles
-apply_styles()
+# Appel de la fonction pour appliquer les styles
+imda.apply_styles()
 
 # Titre principal 
 st.markdown('<p class="big-font">🧹 Préparation et nettoyage des données</p>', unsafe_allow_html=True)
