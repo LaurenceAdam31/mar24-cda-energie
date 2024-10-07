@@ -1,4 +1,3 @@
-import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -6,6 +5,7 @@ import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import seaborn as sns
 import folium
+import streamlit as st
 from streamlit_folium import st_folium
 import altair as alt
 import os
@@ -134,39 +134,13 @@ def create_fig_2(df):
     )
     # Afficher le camembert
     st.plotly_chart(fig)
-    
+@st.cache_data
+def data_2021(data):
+    # Filtrer les données pour l'année 2021
+    df_2021 = data[data["Annee"] == 2021]
+    return df_2021
+   
 
-# @st.cache_data
-# def create_fig_3(df):
-    # # Affichage cartes consommation par Région en 2021
-    # #Position [latitude, longitude] sur laquelle est centrée la carte
-    # location = [47, 1]
-
-    # #Niveau de zoom initial :
-    # #3-4 pour un continent, 5-6 pour un pays, 11-12 pour une ville
-    # zoom = 6
-
-    # #Style de la carte
-    # tiles = 'cartodbpositron'
-
-    # Carte = folium.Map(location = location,
-    #                 zoom_start = zoom,
-    #                 tiles = tiles)
-
-    # json = pd.read_json('regions.geojson')
-
-    # folium.Choropleth(
-    #     geo_data='regions.geojson',
-    #     name="choropleth",
-    #     data=df,
-    #     columns=['Région', "Consommation (MW)"],
-    #     key_on="feature.properties.nom",
-    #     fill_color="Blues",
-    #     fill_opacity=0.7,
-    #     line_opacity=0.2,
-    #     legend_name="Consommation (MW)",
-    # ).add_to(Carte)
-    # st_folium(Carte)
 
 @st.cache_data
 def test_bernard(data):
@@ -233,9 +207,11 @@ def test_bernard(data):
     )
     st.plotly_chart(fig)
 
-@st.cache_data
-def data_2021(data):
-    df_energie = data
+    @st.cache_data
+    def data_2021(data):
+    # Filtrer les données pour l'année 2021
+        df_2021 = data[data["Annee"] == 2021]
+        return df_2021
 
     col1, col2 = st.columns(2)
 
@@ -308,10 +284,10 @@ def create_map(df_2021, title, column, fill_color, legend_name):
     return carte
 
 @st.cache_data
-def create_fig4(data):
+def create_fig4(df_2021):
     # Créer l'histogramme de phasage régional pour 2021
     fig = px.histogram(
-        data_frame=data,
+        data_frame=df_2021,  # Assurez-vous de passer le bon DataFrame ici
         x='Région',
         y=['Consommation (MW)', 'Production_totale (MW)'],
         title="Consommation et production d'électricité par région en 2021",
@@ -320,6 +296,7 @@ def create_fig4(data):
         color_discrete_sequence=['#636EFA', '#EF553B'],  # Couleurs distinctes pour consommation et production
         barmode='group'  # Barres côte à côte
     )
+    
     # Mise à jour de la mise en page pour ajuster la taille
     fig.update_layout(
         width=800,  # Largeur de la figure
@@ -337,7 +314,7 @@ def create_fig4(data):
             font=dict(size=12)  # Taille de police de la légende
         )
     )
-    return fig 
+    return fig
 
 @st.cache_data
 def create_fig5(df_2021):
@@ -345,7 +322,7 @@ def create_fig5(df_2021):
     df_melted = df_2021.melt(id_vars=["Région"],
                              value_vars=["Total_NonRenouvelable (MW)", "Total_Renouvelable (MW)"],
                              var_name="Type", value_name="Production")
-
+    
     # Création du graphique à barres groupées
     fig = px.bar(df_melted, x="Région", y="Production", color="Type",
                  title="Production d'énergie renouvelable et non renouvelable par région en 2021",
@@ -368,6 +345,7 @@ def create_fig5(df_2021):
         width=1000   # Largeur du graphique
     )
     return fig
+
 
 
 
@@ -457,5 +435,3 @@ def create_box_plot(data):
         yaxis_title="Consommation (MW)"
     )
     return fig
-
-
