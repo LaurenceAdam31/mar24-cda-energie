@@ -19,53 +19,8 @@ def apply_styles():
         .small-font { font-size: 24px !important; font-family: system-ui; }
         </style>
     """, unsafe_allow_html=True)
-
-# Liste des noms de mois en français
-month_name_fr = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 
-                 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
-
-# Fonction pour exclure les périodes spécifiques
-def exclude_period(dataframe, periods_to_exclude=['2024-10-01']):
-    """ Exclut les périodes spécifiées du DataFrame. """
-    for period in periods_to_exclude:
-        dataframe = dataframe.drop(pd.Timestamp(period), errors='ignore')
-    return dataframe
-
-
-# Fonction pour charger le DataFrame df_energie à partir d'un fichier CSV compressé
-@st.cache_data
-def get_df_energie():
-    df_energie = pd.read_csv("df_energie.zip", compression='zip')
-    return df_energie
-
-@st.cache_data
-def get_df_group(df_energie):
-    df_group = df_energie.groupby(['PERIODE', 'Code INSEE région']).agg({'Consommation (MW)': 'sum'}).reset_index()
-    df_group['Code INSEE région'] = df_group['Code INSEE région'].astype(int)
-    df_group['PERIODE'] = pd.to_datetime(df_group['PERIODE'])
-    df_group.set_index('PERIODE', inplace=True)
-    return exclude_period(df_group)
-
-# Fonction pour obtenir conso
-@st.cache_data
-def get_conso(df_energie):
-    conso = df_energie.groupby('PERIODE').agg({'Consommation (MW)': 'sum'}).reset_index()
-    conso['PERIODE'] = pd.to_datetime(conso['PERIODE'])
-    conso.set_index('PERIODE', inplace=True)
-    return exclude_period(conso)
-
-# Fonction pour obtenir df_conso_prod
-@st.cache_data
-def get_df_conso_prod(df_energie):
-    df_conso_prod = df_energie.groupby('Annee').agg({
-        'Consommation (MW)': 'sum',
-        'Production_totale (MW)': 'sum',
-        'Total_NonRenouvelable (MW)': 'sum',
-        'Total_Renouvelable (MW)': 'sum'
-    }).reset_index()
-    df_conso_prod = df_conso_prod[df_conso_prod['Annee'] != 2024]
-    return df_conso_prod
-
+    
+    
 # Définir une couleur spécifique pour chaque région
 couleurs_regions = {
     'Île-de-France': '#1f77b4',   # Bleu
@@ -82,14 +37,222 @@ couleurs_regions = {
     'Bourgogne-Franche-Comté': '#f7b6d2'  # Rose clair
 }
 
+
+# Liste des noms de mois en français
+month_name_fr = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 
+                 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+
+############################################################################################################################
+
+# Fonction pour exclure les périodes spécifiques (mois incomplet)
+def exclude_period(dataframe, periods_to_exclude=['2024-10-01']):
+    """ Exclut les périodes spécifiées du DataFrame. """
+    for period in periods_to_exclude:
+        dataframe = dataframe.drop(pd.Timestamp(period), errors='ignore')
+    return dataframe
+
+# Fonction pour charger le DataFrame initial df_energie à partir d'un fichier CSV compressé
+@st.cache_data
+def get_df_energie():
+    df_energie = pd.read_csv("df_energie.zip", compression='zip')
+    return df_energie
+
+
+
+# Création de df_conso_prod (Total par année de la conso et Production par type)
+@st.cache_data
+def get_df_conso_prod(df_energie):
+    df_conso_prod = df_energie.groupby('Annee').agg({
+        'Consommation (MW)': 'sum',
+        'Production_totale (MW)': 'sum',
+        'Total_NonRenouvelable (MW)': 'sum',
+        'Total_Renouvelable (MW)': 'sum'
+    }).reset_index()
+    df_conso_prod = df_conso_prod[df_conso_prod['Annee'] != 2024]
+    return df_conso_prod
+
+
+
+
+# Fonction pour filtrer les données pour l'année 2021
+@st.cache_data
+def data_2021(data):
+    df_2021 = data[data["Annee"] == 2021]
+    return df_2021
+
+# Fonction pour préparer les données agrégées par région
+@st.cache_data
+def prepare_data_by_region(data):
+    df_source = data.groupby(['Annee', 'Région'])[['Consommation (MW)', 'Thermique (MW)', 'Nucléaire (MW)',
+                                                    'Eolien (MW)', 'Solaire (MW)', 'Hydraulique (MW)', 
+                                                    'Pompage (MW)', 'Bioénergies (MW)', 'Ech. physiques (MW)',
+                                                    'Production_totale (MW)', 'Total_NonRenouvelable (MW)', 
+                                                    'Total_Renouvelable (MW)']].sum().reset_index()
+    return df_source
+
+
+
+# Créer l'histogramme
+def create_histogram(df_source):
+    fig = px.histogram(
+        df_source[df_source['Annee'] == 2021], 
+        x='Région', 
+        y=['Eolien (MW)', 'Solaire (MW)', 'Hydraulique (MW)', 'Bioénergies (MW)'],
+        title='Production d\'électricité renouvelable par région en 2021',
+        labels={'value': 'MW'},
+        opacity=1,
+        color_discrete_map={
+            'Eolien (MW)': '#B6E880',
+            'Solaire (MW)': '#FECB52',
+            'Hydraulique (MW)': '#19D3F3',
+            'Bioénergies (MW)': '#FFA15A',
+        }
+    )
+
+    # Mise en place de la légende en dessous et définition de la taille du graphique
+    fig.update_layout(
+        legend=dict(
+            orientation="h",
+            xanchor="center",
+            x=0.5,
+            yanchor="top",
+            y=-0.3
+        ),
+        height=600,
+        width=1000
+    )
+    
+    return fig  # Retourne le graphique
+
+########################################################################################################################
+# Création de conso pour le modèle SARIMAX National (Conso par période)
+@st.cache_data
+def get_conso(df_energie):
+    conso = df_energie.groupby('PERIODE').agg({'Consommation (MW)': 'sum'}).reset_index()
+    conso['PERIODE'] = pd.to_datetime(conso['PERIODE'])
+    conso.set_index('PERIODE', inplace=True)
+    return exclude_period(conso)
+
+# Création de df_group pour le modèle SARIMAX Régional ((Conso par période et par Région)
+@st.cache_data
+def get_df_group(df_energie):
+    df_group = df_energie.groupby(['PERIODE', 'Code INSEE région']).agg({'Consommation (MW)': 'sum'}).reset_index()
+    df_group['Code INSEE région'] = df_group['Code INSEE région'].astype(int)
+    df_group['PERIODE'] = pd.to_datetime(df_group['PERIODE'])
+    df_group.set_index('PERIODE', inplace=True)
+    return exclude_period(df_group)
+
+
+
+
+#################################################################################################################################
+# Fonction pour générer le graphique national de Bernard
+@st.cache_data
+def test_bernard(data):
+    df_energie = data
+    df_conso_prod = get_df_conso_prod(data)
+
+    # Définition des couleurs pour chaque série
+    colors = {
+        'Consommation (MW)': '#636EFA',  # Bleu
+        'Production_totale (MW)':  '#EF553B',  # Rouge
+        'Total_NonRenouvelable (MW)': '#FF7F0E',  # Orange
+        'Total_Renouvelable (MW)': '#00CC96'  # Vert
+    }
+    # Création de la figure
+    fig = go.Figure()
+    # Ajout des traces avec les couleurs définies
+    fig.add_trace(go.Scatter(name="Consommation (MW)", x=df_conso_prod.Annee,
+                             y=df_conso_prod['Consommation (MW)'],
+                             line=dict(color=colors['Consommation (MW)'], width=2)))
+
+    fig.add_trace(go.Scatter(name="Production_totale (MW)", x=df_conso_prod.Annee,
+                             y=df_conso_prod['Production_totale (MW)'],
+                             line=dict(color=colors['Production_totale (MW)'], width=2)))
+
+    fig.add_trace(go.Scatter(name="Production énergie Non Renouvelable (MW)", x=df_conso_prod.Annee,
+                             y=df_conso_prod['Total_NonRenouvelable (MW)'],
+                             line=dict(color=colors['Total_NonRenouvelable (MW)'], width=2)))
+
+    fig.add_trace(go.Scatter(name="Production énergie renouvelable (MW)", x=df_conso_prod.Annee,
+                             y=df_conso_prod['Total_Renouvelable (MW)'],
+                             line=dict(color=colors['Total_Renouvelable (MW)'], width=2)))
+
+    # Trouver la valeur maximale pour définir la plage de l'axe Y
+    max_y = df_conso_prod[['Consommation (MW)', 'Production_totale (MW)', 
+                           'Total_NonRenouvelable (MW)', 'Total_Renouvelable (MW)']].max().max()
+    # Mise à jour du layout
+    fig.update_layout(
+        title="Évolution de la consommation et de la production d'énergie de 2013 à 2023",
+        yaxis_title="MW",
+        xaxis=dict(
+            tickformat="%Y",
+            tickangle=0,
+            dtick=1  # Afficher toutes les années
+        ),
+        yaxis=dict(range=[0, max_y]),  # Définir la plage de l'axe Y
+        legend=dict(
+            orientation="h",  # Légende horizontale
+            y=-0.3,           # Position verticale, en dessous du graphique
+            x=0.5,            # Centre horizontal
+            xanchor="center",  # Ancre horizontale
+            yanchor="top",     # Ancre verticale
+            bgcolor='rgba(255, 255, 255, 0.7)',  # Fond de la légende semi-transparent
+            font=dict(size=14)  # Taille de la police de la légende (plus grand)
+        ),
+        margin=dict(
+            t=50,  # Marge supérieure pour le titre
+            b=150  # Marge inférieure pour la légende
+        ),
+        width=1300,  # Largeur du graphique
+        height=600   # Hauteur du graphique
+    )
+    st.plotly_chart(fig)
+ 
+ 
+def get_pourcentages_france():
+    # Extraire la production totale pour la France en 2021
+    df_2021_france = pd.DataFrame({
+        'Consommation (MW)': [468556569.0],
+        'Thermique (MW)': [37535944.0],
+        'Nucléaire (MW)': [360425725.0],
+        'Eolien (MW)': [36867678.0],
+        'Solaire (MW)': [13973688.0],
+        'Hydraulique (MW)': [61306018.0],
+        'Pompage (MW)': [-6035039.0],
+        'Bioénergies (MW)': [10033910.0],
+        'Ech. physiques (MW)': [-45483890.0],
+        'Production_totale (MW)': [514107924.0],
+        'Total_NonRenouvelable (MW)': [397961669.0],
+        'Total_Renouvelable (MW)': [116146255.0]
+    })
+
+    # Calcul des pourcentages pour chaque type d'énergie
+    production_totale = df_2021_france["Production_totale (MW)"].iloc[0]
+    pourcentages = df_2021_france[[
+        "Thermique (MW)", "Nucléaire (MW)", "Eolien (MW)", "Solaire (MW)",
+        "Hydraulique (MW)", "Pompage (MW)", "Bioénergies (MW)"
+    ]].iloc[0] / production_totale * 100
+
+    # Créer un DataFrame avec les pourcentages
+    df_pourcentages = pd.DataFrame(pourcentages).reset_index()
+    df_pourcentages.columns = ["Type d'énergie", "Pourcentage (%)"]
+
+    return df_pourcentages
+
+
+        
+        
+ # Créer le camembert Production d'énergie par type en France en 2021 (fig1)
 @st.cache_data
 def create_fig_1(df):
-    # Créer le camembert avec Plotly Express
     fig = px.pie(df, values='Pourcentage (%)', names='Type d\'énergie',
                 title="Production d'énergie par type en France en 2021 en pourcentage")
+    
     # Personnaliser les couleurs du camembert
     colors = ['#EF553B', '#636EFA', '#B6E880', '#FECB52', '#19D3F3', '#AB63FA', '#FFA15A', 'gray']
     fig.update_traces(marker=dict(colors=colors))
+    
     # Ajouter un titre au centre
     fig.update_layout(title={
         'text': "Sources de production d'énergie en France en 2021",
@@ -98,27 +261,28 @@ def create_fig_1(df):
         'xanchor': 'center',  # Centrer le titre horizontalement
         'yanchor': 'top'      # Aligner le titre en haut
     })
+    
     fig.update_layout(
         legend=dict(
             orientation='h',  # Orientation horizontale de la légende
             font=dict(size=12, color='black')  # Police et couleur du texte de la légende
-        )
-    )
-    fig.update_layout(
+        ),
         width=550,   # Largeur de la figure en pixels
         height=550   # Hauteur de la figure en pixels
     )
+    
     fig.update_traces(
         textinfo='percent+label',  # Afficher les pourcentages et les labels
         textposition='inside',  # Positionner les textes à l'intérieur des segments
         marker=dict(line=dict(color='white', width=2))  # Ajouter une bordure blanche entre les segments pour plus de clarté
     )
-    st.plotly_chart(fig)
+
+    return fig  # Retourner la figure sans l'afficher
     
-    
+
+# Création d'un camembert représentant en % la consommation d'énergie par Région
 @st.cache_data
 def create_fig_2(df):
-    # Création d'un camembert représentant en % la consommation d'énergie par Région
     fig = px.pie(df, values='Consommation (MW)', names='Région',
                     title=f"Consommation d'énergie par région en France pour l'année 2021")
     fig.update_layout(
@@ -135,158 +299,14 @@ def create_fig_2(df):
     )
     # Afficher le camembert
     st.plotly_chart(fig)
-@st.cache_data
-def data_2021(data):
-    # Filtrer les données pour l'année 2021
-    df_2021 = data[data["Annee"] == 2021]
-    return df_2021
-   
-#Fonction pour créer le graphique national
-@st.cache_data
-def test_bernard(data):
-    df_energie = data
-    # Récupérer df_conso_prod
-    df_conso_prod = get_df_conso_prod(data)
-
-    # Définition des couleurs pour chaque série
-    colors = {
-        'Consommation (MW)': '#636EFA',  # Bleu
-        'Production_totale (MW)':  '#EF553B',  # rouge
-        'Total_NonRenouvelable (MW)': '#FF7F0E',  # orange
-        'Total_Renouvelable (MW)': '#00CC96'  # vert
-    }
-        # Création de la figure
-    fig = go.Figure()
-    # Ajout des traces avec les couleurs définies
-    fig.add_trace(go.Scatter(name="Consommation (MW)", x=df_conso_prod.Annee,
-                            y=df_conso_prod['Consommation (MW)'],
-                            line=dict(color=colors['Consommation (MW)'], width=2)))
-
-    fig.add_trace(go.Scatter(name="Production_totale (MW)", x=df_conso_prod.Annee,
-                            y=df_conso_prod['Production_totale (MW)'],
-                            line=dict(color=colors['Production_totale (MW)'], width=2)))
-
-    fig.add_trace(go.Scatter(name="Production énergie Non Renouvelable (MW)", x=df_conso_prod.Annee,
-                            y=df_conso_prod['Total_NonRenouvelable (MW)'],
-                            line=dict(color=colors['Total_NonRenouvelable (MW)'], width=2)))
-
-    fig.add_trace(go.Scatter(name="Production énergie renouvelable (MW)", x=df_conso_prod.Annee,
-                            y=df_conso_prod['Total_Renouvelable (MW)'],
-                            line=dict(color=colors['Total_Renouvelable (MW)'], width=2)))
-    
-    # Trouver la valeur maximale pour définir la plage de l'axe Y
-    max_y = df_conso_prod[['Consommation (MW)', 'Production_totale (MW)', 
-                            'Total_NonRenouvelable (MW)', 'Total_Renouvelable (MW)']].max().max()
-    # Mise à jour du layout
-    fig.update_layout(
-        title="Évolution de la consommation et de la production d'énergie de 2013 à 2023",
-        yaxis_title="MW",
-        xaxis=dict(
-            tickformat="%Y",
-            tickangle=0,
-            dtick=1  # Afficher toutes les années
-        ),
-        yaxis=dict(range=[0, max_y]),  # Définir la plage de l'axe Y
-        legend=dict(
-            orientation="h",  # Légende horizontale
-            y=-0.3,           # Position verticale, en dessous du graphique
-            x=0.5,            # Centre horizontal
-            xanchor="center", # Ancre horizontale
-            yanchor="top",    # Ancre verticale
-            bgcolor='rgba(255, 255, 255, 0.7)',  # Fond de la légende semi-transparent
-            font=dict(size=14)  # Taille de la police de la légende (plus grand)
-        ),
-        margin=dict(
-            t=50,   # Marge supérieure pour le titre
-            b=150   # Marge inférieure pour la légende
-        ),
-        width=1300,  # Largeur du graphique
-        height=600   # Hauteur du graphique
-    )
-    st.plotly_chart(fig)
     
 
-    @st.cache_data
-    def data_2021(data):
-    # Filtrer les données pour l'année 2021
-        df_2021 = data[data["Annee"] == 2021]
-        return df_2021
 
-    col1, col2 = st.columns(2)
-
-    #Création d'un dataframe qui somme la consommation et la production par région et par année
-    df_source = df_energie.groupby(['Annee', 'Région'])[['Consommation (MW)','Thermique (MW)',	'Nucléaire (MW)',	'Eolien (MW)',	'Solaire (MW)',	'Hydraulique (MW)',	'Pompage (MW)',	'Bioénergies (MW)',	'Ech. physiques (MW)','Production_totale (MW)', 'Total_NonRenouvelable (MW)', 'Total_Renouvelable (MW)']].sum().reset_index()
-
-    #Création d'un dataframe pour l'année de référence 2021
-    df_2021 = df_source.loc[df_source["Annee"] == 2021]
-
-
-    # Création du DataFrame avec vos données
-    df_2021_france = pd.DataFrame({
-        'Consommation (MW)': [468556569.0],
-        'Thermique (MW)': [37535944.0],
-        'Nucléaire (MW)': [360425725.0],
-        'Eolien (MW)': [36867678.0],
-        'Solaire (MW)': [13973688.0],
-        'Hydraulique (MW)': [61306018.0],
-        'Pompage (MW)': [-6035039.0],
-        'Bioénergies (MW)': [10033910.0],
-        'Ech. physiques (MW)': [-45483890.0],
-        'Production_totale (MW)': [514107924.0],
-        'Total_NonRenouvelable (MW)': [397961669.0],
-        'Total_Renouvelable (MW)': [116146255.0]
-    })
-
-    # Extraire la production totale
-    production_totale = df_2021_france["Production_totale (MW)"].iloc[0]
-
-    # Sélectionner les colonnes spécifiques pour calculer les pourcentages
-    pourcentages = df_2021_france[[
-        "Thermique (MW)", "Nucléaire (MW)", "Eolien (MW)",
-        "Solaire (MW)", "Hydraulique (MW)", "Pompage (MW)",
-        "Bioénergies (MW)"
-    ]].iloc[0] / production_totale * 100
-
-    # Créer un DataFrame avec les pourcentages
-    df_pourcentages = pd.DataFrame(pourcentages).reset_index()
-    df_pourcentages.columns = ["Type d'énergie", "Pourcentage (%)"]
-
-    with col1:
-        data_nationale(data)
-
-
-    with col2:
-        #create_fig_2(data)
-        create_fig_1(df_pourcentages)
-
-
-def create_map(df_2021, title, column, fill_color, legend_name):
-    # Position [latitude, longitude] sur laquelle est centrée la carte
-    location = [47, 1]  # Centrer la carte sur la France
-    zoom = 6
-    tiles = 'cartodbpositron'
-
-    carte = folium.Map(location=location, zoom_start=zoom, tiles=tiles)
-
-    folium.Choropleth(
-        geo_data='regions.geojson',  # Assurez-vous que ce chemin est correct
-        name="choropleth",
-        data=df_2021,
-        columns=['Région', column],
-        key_on="feature.properties.nom",
-        fill_color=fill_color,
-        fill_opacity=0.7,
-        line_opacity=0.2,
-        legend_name=legend_name,
-    ).add_to(carte)
-
-    return carte
-
+    # Créer l'histogramme de phasage régional pour 2021 (fig4)
 @st.cache_data
 def create_fig4(df_2021):
-    # Créer l'histogramme de phasage régional pour 2021
     fig = px.histogram(
-        data_frame=df_2021,  # Assurez-vous de passer le bon DataFrame ici
+        data_frame=df_2021,  
         x='Région',
         y=['Consommation (MW)', 'Production_totale (MW)'],
         title="Consommation et production d'électricité par région en 2021",
@@ -295,10 +315,8 @@ def create_fig4(df_2021):
         color_discrete_sequence=['#636EFA', '#EF553B'],  # Couleurs distinctes pour consommation et production
         barmode='group'  # Barres côte à côte
     )
-    
-    # Mise à jour de la mise en page pour ajuster la taille
     fig.update_layout(
-        width=800,  # Largeur de la figure
+        width=1200,  # Largeur de la figure
         height=600,  # Hauteur de la figure
         yaxis_title="MW",  # Titre de l'axe Y
         legend_title="Type d'énergie",  # Titre de la légende
@@ -314,6 +332,8 @@ def create_fig4(df_2021):
         )
     )
     return fig
+
+
 
 @st.cache_data
 def create_fig5(df_2021):
@@ -332,12 +352,14 @@ def create_fig5(df_2021):
                  barmode='group',
                  color_discrete_sequence=['#FF7F0E', '#00CC96'],
                  opacity=0.6
+                 
             )
     
     # Optimisation de l'apparence et des performances
     fig.update_layout(
         xaxis_tickangle=-45,  # Rotation des labels pour améliorer la lisibilité
         autosize=False,       # Fixer la taille pour éviter le redimensionnement dynamique trop lourd
+        width=1200,  # Largeur de la figure
         height=600,           # Taille spécifique pour ne pas utiliser la taille par défaut
         margin=dict(l=40, r=40, t=40, b=40),  # Marges plus petites pour éviter des espaces inutiles
     )
@@ -346,6 +368,7 @@ def create_fig5(df_2021):
 
 
 
+# Création du camembert de Production renouvelable et non renouvelable National en 2021 (data_nationale)
 @st.cache_data
 def data_nationale(data):
     df_energie = data
@@ -366,7 +389,7 @@ def data_nationale(data):
 
     # Mise à jour de la mise en page pour ajuster la taille et centrer le titre
     fig.update_layout(
-        width=800,  # Largeur de la figure
+        width=1200,  # Largeur de la figure
         height=600,  # Hauteur de la figure
         xaxis_title="Année",  # Titre de l'axe X
         yaxis_title="MW",  # Titre de l'axe Y
@@ -391,9 +414,9 @@ def data_nationale(data):
             yanchor='top'  # Ancrage vertical en haut
         )
     )
-
     # Afficher l'histogramme
-    st.plotly_chart(fig)
+    return fig 
+
 
     df_conso_globale = df_energie[['Annee', 'Mois', 'Consommation (MW)']].groupby(['Annee', 'Mois']).sum()
     df_conso_globale.reset_index(inplace=True)
@@ -413,9 +436,10 @@ def data_nationale(data):
     chart
 
 
+# Création du graphique de boîtes animées avec Plotly
 @st.cache_data
 def create_box_plot(data):
-    # Création du graphique de boîtes animées avec Plotly
+
     fig = px.box(data,
                   x="Région",
                   y="Consommation (MW)",
@@ -432,3 +456,26 @@ def create_box_plot(data):
         yaxis_title="Consommation (MW)"
     )
     return fig
+
+
+#CREATION DES CARTES FOLIUM
+def create_map(df_2021, title, column, fill_color, legend_name):
+    # Position [latitude, longitude] sur laquelle est centrée la carte
+    location = [47, 1]  # Centrer la carte sur la France
+    zoom = 6
+    tiles = 'cartodbpositron'
+    carte = folium.Map(location=location, zoom_start=zoom, tiles=tiles)
+    
+    folium.Choropleth(
+        geo_data='regions.geojson',  # Assurez-vous que ce chemin est correct
+        name="choropleth",
+        data=df_2021,
+        columns=['Région', column],
+        key_on="feature.properties.nom",
+        fill_color=fill_color,
+        fill_opacity=0.7,
+        line_opacity=0.2,
+        legend_name=legend_name,
+    ).add_to(carte)
+    
+    return carte
