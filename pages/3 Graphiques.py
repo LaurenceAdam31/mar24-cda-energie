@@ -104,12 +104,12 @@ elif page == "Sources d'énergie":
     st.plotly_chart(fig1)
 
     #  expander pour la deuxième ligne de graphiques
-    with st.expander("Type de source d'energie par région en 2021"):
+    #with st.expander("Type de source d'energie par région en 2021"):
     
-        fig5 = imda.create_fig5(df_2021)  # Créer le graphique
-        st.plotly_chart(fig5)  # Afficher le graphique
+        #fig5 = imda.create_fig5(df_2021)  # Créer le graphique
+        #st.plotly_chart(fig5)  # Afficher le graphique
     
-    with st.expander("Type de source d'energie renouvelables par région en 2021"):
+    with st.expander("Types de sources d'energie par région en 2021"):
         
         fig_histogram = imda.create_histogram(df_source)
         st.plotly_chart(fig_histogram)  # Affichez l'histogramme

@@ -90,24 +90,45 @@ def prepare_data_by_region(data):
                                                     'Total_Renouvelable (MW)']].sum().reset_index()
     return df_source
 
-
-
-# Créer l'histogramme
+# Créer l'histogramme reformulé
 def create_histogram(df_source):
-    fig = px.histogram(
-        df_source[df_source['Annee'] == 2021], 
+    # Filtrer les données pour l'année 2021
+    df_2021 = df_source[df_source['Annee'] == 2021]
+    
+    # Reformuler les données pour un graphique groupé
+    df_melted = df_2021.melt(id_vars=['Région'], 
+                             value_vars=['Eolien (MW)', 'Solaire (MW)', 'Hydraulique (MW)', 
+                                         'Bioénergies (MW)', 'Total_NonRenouvelable (MW)'],
+                             var_name='Type', 
+                             value_name='Production')
+    
+    # Créer un graphique à barres empilées
+    fig = px.bar(
+        df_melted, 
         x='Région', 
-        y=['Eolien (MW)', 'Solaire (MW)', 'Hydraulique (MW)', 'Bioénergies (MW)'],
-        title='Production d\'électricité renouvelable par région en 2021',
-        labels={'value': 'MW'},
+        y='Production', 
+        color='Type',
+        #title='Production d\'électricité par type par région en 2021',
+        labels={'Production': 'MW'},
         opacity=1,
         color_discrete_map={
-            'Eolien (MW)': '#B6E880',
-            'Solaire (MW)': '#FECB52',
-            'Hydraulique (MW)': '#19D3F3',
-            'Bioénergies (MW)': '#FFA15A',
+            'Eolien (MW)': '#B6E880',        # Vert clair pour l'éolien
+            'Solaire (MW)': '#FECB52',       # Jaune pour le solaire
+            'Hydraulique (MW)': '#19D3F3',   # Bleu clair pour l'hydraulique
+            'Bioénergies (MW)': '#FFA15A',   # Orange pour les bioénergies
+            'Total_NonRenouvelable (MW)': '#723e64 '  # Violet pour les énergies non renouvelables
         }
     )
+    
+    # Ajuster la mise en page
+    fig.update_layout(
+        xaxis_tickangle=-45,  # Rotation des labels des régions
+        height=600,           # Hauteur du graphique
+        margin=dict(l=40, r=40, t=40, b=80),  # Ajustement des marges
+        barmode='stack'  # Mode 'empilé' pour afficher les barres empilées
+    )
+    
+    return fig
 
     # Mise en place de la légende en dessous et définition de la taille du graphique
     fig.update_layout(
@@ -335,36 +356,35 @@ def create_fig4(df_2021):
 
 
 
-@st.cache_data
-def create_fig5(df_2021):
+#@st.cache_data
+#def create_fig5(df_2021):
     # Filtrer uniquement les colonnes nécessaires pour optimiser
-    df_filtered = df_2021[['Région', 'Total_NonRenouvelable (MW)', 'Total_Renouvelable (MW)']].copy()
+    #df_filtered = df_2021[['Région', 'Total_NonRenouvelable (MW)', 'Total_Renouvelable (MW)']].copy()
 
     # Reshape data for bar plot
-    df_melted = df_filtered.melt(id_vars=["Région"],
-                                 value_vars=["Total_NonRenouvelable (MW)", "Total_Renouvelable (MW)"],
-                                 var_name="Type", value_name="Production")
+    #df_melted = df_filtered.melt(id_vars=["Région"],
+                                 #value_vars=["Total_NonRenouvelable (MW)", "Total_Renouvelable (MW)"],
+                                 #var_name="Type", value_name="Production")
     
     # Création du graphique à barres groupées
-    fig = px.bar(df_melted, x="Région", y="Production", color="Type",
-                 title="Production d'énergie renouvelable et non renouvelable par région en 2021",
-                 labels={"Production": "Production (MW)", "Type": "Type de production"},
-                 barmode='group',
-                 color_discrete_sequence=['#FF7F0E', '#00CC96'],
-                 opacity=0.6
+    #fig = px.bar(df_melted, x="Région", y="Production", color="Type",
+                 #title="Production d'énergie renouvelable et non renouvelable par région en 2021",
+                 #labels={"Production": "Production (MW)", "Type": "Type de production"},
+                 #barmode='group',
+                 #color_discrete_sequence=['#FF7F0E', '#00CC96'],
+                 #opacity=0.6
                  
-            )
     
     # Optimisation de l'apparence et des performances
-    fig.update_layout(
-        xaxis_tickangle=-45,  # Rotation des labels pour améliorer la lisibilité
-        autosize=False,       # Fixer la taille pour éviter le redimensionnement dynamique trop lourd
-        width=1200,  # Largeur de la figure
-        height=600,           # Taille spécifique pour ne pas utiliser la taille par défaut
-        margin=dict(l=40, r=40, t=40, b=40),  # Marges plus petites pour éviter des espaces inutiles
-    )
+    #fig.update_layout(
+        #xaxis_tickangle=-45,  # Rotation des labels pour améliorer la lisibilité
+        #autosize=False,       # Fixer la taille pour éviter le redimensionnement dynamique trop lourd
+        #width=1200,  # Largeur de la figure
+        #height=600,           # Taille spécifique pour ne pas utiliser la taille par défaut
+        #margin=dict(l=40, r=40, t=40, b=40),  # Marges plus petites pour éviter des espaces inutiles
+    #)
 
-    return fig
+    #return fig
 
 
 
