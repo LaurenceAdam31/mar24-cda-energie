@@ -9,6 +9,9 @@ import streamlit as st
 from streamlit_folium import st_folium
 import altair as alt
 import os
+from statsmodels.tsa.seasonal import seasonal_decompose
+
+
 
 # Fonction pour appliquer les styles CSS
 def apply_styles():
@@ -499,3 +502,10 @@ def create_map(df_2021, title, column, fill_color, legend_name):
     ).add_to(carte)
     
     return carte
+
+def preprocess_data(conso):
+    df_moislog = np.log(conso['Consommation (MW)'])
+    mult = seasonal_decompose(df_moislog, model='multiplicative', period=12)
+    cvs = df_moislog / mult.seasonal
+    x_cvs = np.exp(cvs)
+    return x_cvs, mult

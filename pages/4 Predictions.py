@@ -4,9 +4,12 @@ import streamlit as st
 import datetime
 from utils import import_data as imda
 import plotly.express as px
+import numpy as np
+from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from statsmodels.tsa.arima.model import ARIMA
 from matplotlib import pyplot as plt
+
 
 
 # CONFIG DE LA PAGE --> AVEC FAVICON
@@ -65,7 +68,7 @@ model_national = load('model_national.pkl')
 
 # SIDEBAR A GAUCHE CLASSIQUE
 st.sidebar.title("Predictions")
-pages = ["Prediction Nationale", "Prediction Régionale"]
+pages = ["Modélisation","Prediction Nationale", "Prediction Régionale"]
 page = st.sidebar.radio("Aller vers", pages)
 
 
@@ -80,6 +83,61 @@ imda.apply_styles()
 st.markdown('<p class="big-font">📈 Prédictions</p>', unsafe_allow_html=True)
 
 
+# SWITCH SUR LA PAGE DE MODÉLISATION
+if page == "Modélisation":
+    st.markdown('<p class="medium-font"><b>Choix des modèles utilisés pour les préditions</b></p>', unsafe_allow_html=True)
+
+    # Texte d'introduction au choix du modèle 
+    st.markdown('<p class="small-font">Nous avons constaté la forte variation saisonnière de la consommation d\'énergie, et nous avons donc opté pour des modèles SARIMA pour nos prédictions.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="small-font">Par ailleurs, nous avons procédé à une transformation logarithmique pour étudier la tendance d\'évolution de la consommation corrigée des variations saisonnières.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="small-font">La visualisation des résidus nous permet de visualiser les évènements ayant impacté la consommation d\'énergie, comme le confinement en 2020.</p>', unsafe_allow_html=True)
+
+    # Appel de la fonction dans la page de modélisation
+    x_cvs, mult = imda.preprocess_data(conso)
+
+    # Graphiques
+    st.markdown("### Série originale et série corrigée des variations saisonnières")
+    with st.expander("Afficher/Masquer la série originale et la série corrigée"):
+        fig, ax = plt.subplots(figsize=(8, 4))
+
+        # Série originale
+        ax.plot(conso.index, conso['Consommation (MW)'], label='Série originale', color='blue')
+
+        # Série corrigée
+        ax.plot(conso.index, x_cvs, label='Série corrigée', color='red', linestyle='--')
+
+        ax.set_title('Série originale et série corrigée des variations saisonnières')
+        ax.set_xlabel('Date')
+        ax.set_ylabel('Consommation (MW)')
+
+        ax.legend(loc='upper left')
+        ax.grid(True)
+
+        st.pyplot(fig)
+
+    # Créer un expander pour la décomposition saisonnière
+    st.markdown("### Décomposition de la série")
+    with st.expander("Afficher/Masquer la décomposition saisonnière"):
+        fig2, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(8, 6), sharex=True)
+
+        # Composantes de la décomposition
+        ax1.plot(conso.index, np.log(conso['Consommation (MW)']), label='Log(Consommation)', color='blue')
+        ax1.set_title('Série Log(Consommation)')
+
+        ax2.plot(conso.index, mult.trend, label='Tendance', color='green')
+        ax2.set_title('Tendance')
+
+        ax3.plot(conso.index, mult.seasonal, label='Saisonnalité', color='orange')
+        ax3.set_title('Saisonnalité')
+
+        ax4.plot(conso.index, mult.resid, label='Résidus', color='purple')
+        ax4.set_title('Résidus')
+
+        for ax in [ax1, ax2, ax3, ax4]:
+            ax.legend(loc='upper left')
+            ax.grid(True)
+
+        st.pyplot(fig2)
 
 # SWITCH SUR LA PAGE DE PREDICTION
 if page == "Prediction Nationale":
@@ -155,7 +213,7 @@ elif page == "Prediction Régionale":
     """, unsafe_allow_html=True)
 
      # Conclusion sur le choix du modèle 
-    st.markdown('<p class="small-font">Nous avons choisi le modèle qui offrait les meilleures performances en fonction des métriques MAE, MSE, RMSE, et R².</p>', unsafe_allow_html=True)
+    st.markdown('<p class="small-font">Nous avons choisi le modèle qui offrait les meilleures performances pour chaque région en fonction des métriques MAE, MSE, RMSE, et R².</p>', unsafe_allow_html=True)
 
 
     # Interface Streamlit
