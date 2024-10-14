@@ -233,24 +233,7 @@ if page == "Prediction Nationale":
     
 elif page == "Prediction Régionale":
 
-    # Appel de la fonction pour appliquer les styles
-    imda.apply_styles()
-
-    # Texte d'introduction au choix du modèle 
-    st.markdown('<p class="small-font">Pour définir le choix du modèle au niveau régional, nous avons testé plusieurs solutions :</p>', unsafe_allow_html=True)
-
-    # Choix des modèles avec liste à puces
-    st.markdown("""
-    <li class="small-font">Expérimentation du modèle SARIMAX, défini au niveau national, appliqué aux données régionales.</li>
-    <li class="small-font">Approche statistique classique : on adapte un modèle à l'ensemble du lot de données pour déterminer si paramètres des variables sont significatifs ou non</li>
-    <li class="small-font">Mise en place de l'apprentissage automatique pour optimiser les prédictions, sans se préoccuper de la relation entre les variables.</li>
-    </ul>
-    """, unsafe_allow_html=True)
-
-     # Conclusion sur le choix du modèle 
-    st.markdown('<p class="small-font">Nous avons choisi le modèle qui offrait les meilleures performances pour chaque région en fonction des métriques MAE, MSE, RMSE, et R².</p>', unsafe_allow_html=True)
-
-
+    
     # Interface Streamlit
     st.markdown('<p class="medium-font"><b>Prédictions de la consommation électrique par région</b></p>', unsafe_allow_html=True)
 
