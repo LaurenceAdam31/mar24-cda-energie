@@ -85,25 +85,30 @@ st.markdown('<p class="big-font">📈 Prédictions</p>', unsafe_allow_html=True)
 
 # SWITCH SUR LA PAGE DE MODÉLISATION
 if page == "Modélisation":
-    st.markdown('<p class="medium-font"><b>Choix des modèles utilisés pour les préditions</b></p>', unsafe_allow_html=True)
+    st.markdown('<p class="medium-font"><b>Choix des modèles utilisés pour les prédictions</b></p>', unsafe_allow_html=True)
 
-    st.markdown('<p class="small-font">Plusieurs modèles de prévision peuvent être utilsés', unsafe_allow_html=True)
-    st.markdown("<p class='small-font'>Nous avons choisi d'essayer des modèles simples: Modèle de régression linéaire et Modèles ARIMA/SARIMA", unsafe_allow_html=True)
-    st.markdown("<p class='small-font'>Modèle de régression linéaire : trop simple", unsafe_allow_html=True)
-    st.markdown("<p class='small-font'>Modèle ARIMA/SARIMA : essai au niveau national et régional", unsafe_allow_html=True)
-    st.write('Essais au niveau national')
-    st.write("&nbsp;&nbsp;&nbsp;&nbsp; Boucle pour trouver les meilleurs paramètres, basés sur le BIC")
-    st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto les meilleurs paramètres, basés sur le AIC")
+    st.markdown('<p class="small-font">Plusieurs modèles de prévision peuvent être utilisés. Nous avons tout d\'abord choisi d\'essayer des modèles simples:', unsafe_allow_html=True)
+
+    st.markdown("""
+        <ul>
+            <li class="small-font">Modèle de régression linéaire : trop simple.</li>
+            <li class="small-font">Modèle ARIMA/SARIMA, essai de différents paramètres au niveau national et régional:</li>
+        </ul>
+        """, unsafe_allow_html=True)
+  
     
-    st.write('Essais au niveau régional')
-    st.write("&nbsp;&nbsp;&nbsp;&nbsp; Application des meilleurs paramètres trouvés au niveau national :  order=(0,1,2), seasonal_order=(1, 2, 2, 12)")
-    st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto pour trouvés les meilleurs paramètres par région, entrainé sur l'ensemble des données")
-    st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto pour trouvés les meilleurs paramètres par région, entrainé sur ensemble train/test")
+    with st.expander("Essais au niveau national"):
+        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Boucle pour trouver les meilleurs paramètres, basés sur le BIC")
+        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto les meilleurs paramètres, basés sur le AIC")
+    
+    with st.expander("Essais au niveau régional"):
+        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Application des meilleurs paramètres trouvés au niveau national :  order=(0,1,2), seasonal_order=(1, 2, 2, 12)")
+        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto pour trouvés les meilleurs paramètres par région, entrainé sur l'ensemble des données")
+        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto pour trouvés les meilleurs paramètres par région, entrainé sur ensemble train/test")
 
-    # Texte d'introduction au choix du modèle 
-    st.markdown('<p class="small-font">Nous avons constaté la forte variation saisonnière de la consommation d\'énergie, et nous avons donc opté pour des modèles SARIMA pour nos prédictions.</p>', unsafe_allow_html=True)
-    st.markdown('<p class="small-font">Par ailleurs, nous avons procédé à une transformation logarithmique pour étudier la tendance d\'évolution de la consommation corrigée des variations saisonnières.</p>', unsafe_allow_html=True)
-    st.markdown('<p class="small-font">La visualisation des résidus nous permet de visualiser les évènements ayant impacté la consommation d\'énergie, comme le confinement en 2020.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="small-font">Les modèles SARIMA se sont révélés les plus adaptés à la forte variation saisonnière de la consommation d\'énergie.</p>', unsafe_allow_html=True)
+
+    st.markdown('<p class="small-font">Nous avons aussi procédé à une transformation logarithmique pour étudier la tendance d\'évolution de la consommation corrigée des variations saisonnières. La visualisation des résidus nous permet de visualiser les évènements ayant impacté la consommation d\'énergie, comme le confinement en 2020.</p>', unsafe_allow_html=True)
 
     # Appel de la fonction dans la page de modélisation
     x_cvs, mult = imda.preprocess_data(conso)
