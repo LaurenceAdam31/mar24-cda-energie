@@ -3,11 +3,14 @@ import pandas as pd
 import numpy as np
 from utils import import_data as imda
 
+
 # CONFIG DE LA PAGE --> AVEC FAVICON
 st.set_page_config(page_title="Projet Energie", page_icon="🌟", layout="wide")
 
 # Appel de la fonction pour appliquer les styles
 imda.apply_styles()
+
+
 
 # Titre principal 
 st.markdown('<p class="big-font">🧹 Préparation et nettoyage des données</p>', unsafe_allow_html=True)

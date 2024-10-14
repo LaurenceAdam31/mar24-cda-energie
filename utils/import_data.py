@@ -10,6 +10,7 @@ from streamlit_folium import st_folium
 import altair as alt
 import os
 from statsmodels.tsa.seasonal import seasonal_decompose
+import base64
 
 
 
@@ -75,8 +76,6 @@ def get_df_conso_prod(df_energie):
     return df_conso_prod
 
 
-
-
 # Fonction pour filtrer les données pour l'année 2021
 @st.cache_data
 def data_2021(data):
@@ -123,18 +122,11 @@ def create_histogram(df_source):
         }
     )
     
-    # Ajuster la mise en page
+    # Ajuster la mise en page 
     fig.update_layout(
         xaxis_tickangle=-45,  # Rotation des labels des régions
-        height=600,           # Hauteur du graphique
         margin=dict(l=40, r=40, t=40, b=80),  # Ajustement des marges
-        barmode='stack'  # Mode 'empilé' pour afficher les barres empilées
-    )
-    
-    return fig
-
-    # Mise en place de la légende en dessous et définition de la taille du graphique
-    fig.update_layout(
+        barmode='stack',  # Mode 'empilé' pour afficher les barres empilées
         legend=dict(
             orientation="h",
             xanchor="center",
@@ -146,7 +138,33 @@ def create_histogram(df_source):
         width=1000
     )
     
-    return fig  # Retourne le graphique
+    return fig
+
+
+
+def create_echanges(df_source):
+    df_2021 = df_source[df_source['Annee'] == 2021]
+    # Vérifier s'il y a des valeurs non-nulles dans 'Ech. physiques (MW)'
+    
+    df_echanges_physiques = df_2021[['Région', 'Ech. physiques (MW)']].dropna()
+    
+    if df_echanges_physiques.empty:
+        st.write("Aucune donnée d'échanges physiques disponible pour 2021.")
+        return None
+    fig = px.bar(df_echanges_physiques, 
+                 x='Région', 
+                 y='Ech. physiques (MW)', 
+                 title='Echanges physiques par région en 2021',
+                 labels={'Ech. physiques (MW)': 'MW'},
+                 opacity=0.7,
+                 color_discrete_sequence=['grey'])
+
+    fig.update_layout(width=1200, height=800)
+    return fig
+
+
+
+
 
 ########################################################################################################################
 # Création de conso pour le modèle SARIMAX National (Conso par période)
@@ -310,7 +328,7 @@ def create_fig_2(df):
     fig = px.pie(df, values='Consommation (MW)', names='Région',
                     title=f"Consommation d'énergie par région en France pour l'année 2021")
     fig.update_layout(
-        width=600,  # largeur en pixels
+        width=500,  # largeur en pixels
         height=600,  # hauteur en pixels
         legend=dict(
             orientation="h",  # 'h' horizontal
@@ -337,7 +355,8 @@ def create_fig4(df_2021):
         labels={'value': 'MW', 'variable': 'Type d\'énergie'},  # Labels personnalisés pour l'axe Y et les légendes
         opacity=0.8,  # Opacité des barres
         color_discrete_sequence=['#636EFA', '#EF553B'],  # Couleurs distinctes pour consommation et production
-        barmode='group'  # Barres côte à côte
+        barmode='group',  # Barres côte à côte
+        category_orders={'Région': sorted(df_2021['Région'].unique())}  # Tri des régions par ordre alphabétique
     )
     fig.update_layout(
         width=1200,  # Largeur de la figure
@@ -474,7 +493,7 @@ def create_box_plot(data):
 
     # Mise à jour de la mise en page
     fig.update_layout(
-        title="Consommation d'énergie par région de 2015 à 2024",
+        title="Consommation d'énergie par région de 2015 à 2023",
         xaxis_title="Région",
         yaxis_title="Consommation (MW)"
     )
@@ -503,9 +522,11 @@ def create_map(df_2021, title, column, fill_color, legend_name):
     
     return carte
 
+@st.cache_data
 def preprocess_data(conso):
     df_moislog = np.log(conso['Consommation (MW)'])
     mult = seasonal_decompose(df_moislog, model='multiplicative', period=12)
     cvs = df_moislog / mult.seasonal
     x_cvs = np.exp(cvs)
     return x_cvs, mult
+
