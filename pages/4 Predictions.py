@@ -65,7 +65,7 @@ model_national = load('model_national.pkl')
 
 # SIDEBAR A GAUCHE CLASSIQUE
 st.sidebar.title("Predictions")
-pages = ["Prediction Nationale", "Prediction Régionale"]
+pages = ["Modèles", "Prediction Nationale", "Prediction Régionale"]
 page = st.sidebar.radio("Aller vers", pages)
 
 
@@ -82,6 +82,23 @@ st.markdown('<p class="big-font">📈 Prédictions</p>', unsafe_allow_html=True)
 
 
 # SWITCH SUR LA PAGE DE PREDICTION
+if page == "Modèles":
+    st.markdown('<p class="small-font"><b>Modèles utilisés pour la prédiction</b></p>', unsafe_allow_html=True)
+    st.write('Plusieurs modèles de prévisions peuvent êre utilisés : des modèles simples et rapides, et des modèles plus complexes')
+    st.write('<b>Modèles simples</b>',' : Modèle de régression linéaire - Modèles ARIMA/SARIMA', unsafe_allow_html=True)
+    st.write("Essais au niveau national")
+    st.markdown("""
+- Boucle pour trouver les meilleurs paramètres, basé sur le BIC
+- Modèle automatique (auto arima), qui trouve les meilleurs paramètres basés sur l'AIC
+""")
+    st.write("Essais au niveau régional")
+    st.markdown("""
+- Modèle (boucle) avec les meilleurs paramètres trouvés pour le niveau national :  Les meilleurs paramètres identifiés par la fonction sont order=(0,1,2), seasonal_order=(1, 2, 2, 12)
+- Modèle automatique pour trouver les meilleurs paramètres par région, entrainé sur l'ensemble des données
+- Modèle automatique pour trouver les meilleurs paramètres par région, entrainé sur un ensemble train/test
+""")
+             
+    
 if page == "Prediction Nationale":
     st.markdown('<p class="medium-font"><b>Prédictions de la consommation électrique nationale</b></p>', unsafe_allow_html=True)
 
