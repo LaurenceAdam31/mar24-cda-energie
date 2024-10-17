@@ -525,8 +525,7 @@ def create_map(df_2021, title, column, fill_color, legend_name):
 @st.cache_data
 def preprocess_data(conso):
     df_moislog = np.log(conso['Consommation (MW)'])
-    mult = seasonal_decompose(df_moislog, model='multiplicative', period=12)
-    cvs = df_moislog / mult.seasonal
+    mult = seasonal_decompose(df_moislog, model='additive', period=12)
+    cvs = df_moislog - mult.seasonal
     x_cvs = np.exp(cvs)
     return x_cvs, mult
-

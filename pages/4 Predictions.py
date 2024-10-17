@@ -15,22 +15,22 @@ from matplotlib import pyplot as plt
 # CONFIG DE LA PAGE --> AVEC FAVICON
 st.set_page_config(page_title="Projet Energie - prédictions", page_icon="🌟", layout="wide")
 
- # Dictionnaire des meilleurs modèles par région
-meilleurs_modeles = {
-    "11 - Ile de France": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
-    "24 - Centre-Val de Loire": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
-    "27 - Bourgogne-Franche-Comté": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
-    "28 - Normandie": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
-    "32 - Hauts-de-France": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
-    "44 - Grand Est": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
-    "52 - Pays de la Loire": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
-    "53 - Bretagne": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
-    "75 - Nouvelle-Aquitaine": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
-    "76 - Occitanie": ('ARIMA', (1, 0, 1), (2, 0, 0, 12)),
-    "84 - Auvergne-Rhône-Alpes": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
-    "93 - Provence-Alpes-Côte d Azur": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
+#  # Dictionnaire des meilleurs modèles par région
+# meilleurs_modeles = {
+#     "11 - Ile de France": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
+#     "24 - Centre-Val de Loire": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
+#     "27 - Bourgogne-Franche-Comté": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
+#     "28 - Normandie": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
+#     "32 - Hauts-de-France": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
+#     "44 - Grand Est": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
+#     "52 - Pays de la Loire": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
+#     "53 - Bretagne": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
+#     "75 - Nouvelle-Aquitaine": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
+#     "76 - Occitanie": ('ARIMA', (1, 0, 1), (2, 0, 0, 12)),
+#     "84 - Auvergne-Rhône-Alpes": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
+#     "93 - Provence-Alpes-Côte d Azur": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
    
-}
+# }
 
 
 def creer_modele(data, modele_info):
@@ -251,11 +251,12 @@ elif page == "Prediction Régionale":
     if region_selection:
         region_code = region_selection.split(' - ')[0]
         df_region = df_par_region[int(region_code)].drop(columns=['Code INSEE région'])
-        modele_info = meilleurs_modeles.get(region_selection)
+        # modele_info = meilleurs_modeles.get(region_selection)
         
         model_regional = load(f'model_region_{region_code}.pkl')
         
-        if modele_info:
+        if model_regional:
+
             start_date = '2021-01-01'
             end_date = '2024-12-01'
             # Faire la prédiction en fonction des dates saisies

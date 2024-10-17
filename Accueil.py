@@ -20,7 +20,7 @@ st.markdown("""
         color: #2d3a64;
     }
     .small-font {
-        font-size: 22px !important; /* Ajuste la taille selon tes besoins */
+        font-size: 20px !important; /* Ajuste la taille selon tes besoins */
         font-family: system-ui;
         line-height: 0.9; /* Ajuste la hauteur de ligne pour réduire l'espacement */
     }
