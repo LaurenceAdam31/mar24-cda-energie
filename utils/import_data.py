@@ -13,14 +13,13 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 import base64
 
 
-
 # Fonction pour appliquer les styles CSS
 def apply_styles():
     st.markdown("""
         <style>
-        .big-font { font-size: 50px !important; font-family: system-ui; color: #2d3a64; }
-        .medium-font { font-size: 30px !important; font-family: system-ui; color: #2d3a64; }
-        .small-font { font-size: 24px !important; font-family: system-ui; }
+        .big-font { font-size: 36px !important; font-family: system-ui; color: #2d3a64; }
+        .medium-font { font-size: 25px !important; font-family: system-ui; color: #2d3a64; }
+        .small-font { font-size: 18px !important; font-family: system-ui; }
         </style>
     """, unsafe_allow_html=True)
     
@@ -134,7 +133,7 @@ def create_histogram(df_source):
             yanchor="top",
             y=-0.3
         ),
-        height=600,
+        height=500,
         width=1000
     )
     
@@ -159,7 +158,7 @@ def create_echanges(df_source):
                  opacity=0.7,
                  color_discrete_sequence=['grey'])
 
-    fig.update_layout(width=1200, height=800)
+    fig.update_layout(width=1000, height=500)
     return fig
 
 
@@ -246,8 +245,8 @@ def test_bernard(data):
             t=50,  # Marge supérieure pour le titre
             b=150  # Marge inférieure pour la légende
         ),
-        width=1300,  # Largeur du graphique
-        height=600   # Hauteur du graphique
+        width=1000,  # Largeur du graphique
+        height=500   # Hauteur du graphique
     )
     st.plotly_chart(fig)
  
@@ -328,8 +327,8 @@ def create_fig_2(df):
     fig = px.pie(df, values='Consommation (MW)', names='Région',
                     title=f"Consommation d'énergie par région en France pour l'année 2021")
     fig.update_layout(
-        width=500,  # largeur en pixels
-        height=600,  # hauteur en pixels
+        width=400,  # largeur en pixels
+        height=500,  # hauteur en pixels
         legend=dict(
             orientation="h",  # 'h' horizontal
             # yanchor="bottom",  # ancrer en haut
@@ -359,8 +358,8 @@ def create_fig4(df_2021):
         category_orders={'Région': sorted(df_2021['Région'].unique())}  # Tri des régions par ordre alphabétique
     )
     fig.update_layout(
-        width=1200,  # Largeur de la figure
-        height=600,  # Hauteur de la figure
+        width=1000,  # Largeur de la figure
+        height=500,  # Hauteur de la figure
         yaxis_title="MW",  # Titre de l'axe Y
         legend_title="Type d'énergie",  # Titre de la légende
         title_x=0,  # Centrer le titre
@@ -431,8 +430,8 @@ def data_nationale(data):
 
     # Mise à jour de la mise en page pour ajuster la taille et centrer le titre
     fig.update_layout(
-        width=1200,  # Largeur de la figure
-        height=600,  # Hauteur de la figure
+        width=1000,  # Largeur de la figure
+        height=500,  # Hauteur de la figure
         xaxis_title="Année",  # Titre de l'axe X
         yaxis_title="MW",  # Titre de l'axe Y
         legend_title="Type d'énergie",  # Titre de la légende

@@ -106,29 +106,16 @@ if page == "Modélisation":
     st.markdown("""
         <ul>
             <li class="small-font">Modèle de régression linéaire : trop simple.</li>
-            <li class="small-font">Modèle ARIMA/SARIMA, essai de différents paramètres au niveau national et régional:</li>
         </ul>
         """, unsafe_allow_html=True)
-  
     
-    with st.expander("Essais au niveau national"):
-        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Boucle pour trouver les meilleurs paramètres, basés sur le BIC")
-        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto les meilleurs paramètres, basés sur le AIC")
-    
-    with st.expander("Essais au niveau régional"):
-        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Application des meilleurs paramètres trouvés au niveau national :  order=(0,1,2), seasonal_order=(1, 2, 2, 12)")
-        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto pour trouvés les meilleurs paramètres par région, entrainé sur l'ensemble des données")
-        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto pour trouvés les meilleurs paramètres par région, entrainé sur ensemble train/test")
-
-    st.markdown('<p class="small-font">Les modèles SARIMA se sont révélés les plus adaptés à la forte variation saisonnière de la consommation d\'énergie.</p>', unsafe_allow_html=True)
-
     st.markdown('<p class="small-font">Nous avons aussi procédé à une transformation logarithmique pour étudier la tendance d\'évolution de la consommation corrigée des variations saisonnières. La visualisation des résidus nous permet de visualiser les évènements ayant impacté la consommation d\'énergie, comme le confinement en 2020.</p>', unsafe_allow_html=True)
 
     # Appel de la fonction dans la page de modélisation
     x_cvs, mult = imda.preprocess_data(conso)
 
     # Graphiques
-    st.markdown("### Série originale et série corrigée des variations saisonnières")
+    st.markdown("##### Série originale et série corrigée des variations saisonnières")
     with st.expander("Afficher/Masquer la série originale et la série corrigée"):
         fig, ax = plt.subplots(figsize=(8, 4))
 
@@ -148,7 +135,7 @@ if page == "Modélisation":
         st.pyplot(fig)
 
     # Créer un expander pour la décomposition saisonnière
-    st.markdown("### Décomposition de la série")
+    st.markdown("##### Décomposition de la série")
     with st.expander("Afficher/Masquer la décomposition saisonnière"):
         fig2, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(8, 6), sharex=True)
 
@@ -170,6 +157,25 @@ if page == "Modélisation":
             ax.grid(True)
 
         st.pyplot(fig2)
+  
+    st.markdown("""
+        <ul>
+            <li class="small-font">Modèle ARIMA/SARIMA, essai de différents paramètres au niveau national et régional:</li>
+        </ul>
+        """, unsafe_allow_html=True)
+    
+    with st.expander("Essais au niveau national"):
+        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Boucle pour trouver les meilleurs paramètres, basés sur le BIC")
+        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto les meilleurs paramètres, basés sur le AIC")
+    
+    with st.expander("Essais au niveau régional"):
+        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Application des meilleurs paramètres trouvés au niveau national :  order=(0,1,2), seasonal_order=(1, 2, 2, 12)")
+        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto pour trouver les meilleurs paramètres par région, entrainé sur l'ensemble des données")
+        st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto pour trouver les meilleurs paramètres par région, entrainé sur ensemble train/test")
+
+    st.markdown('<p class="small-font">Les modèles SARIMA se sont révélés les plus adaptés à la forte variation saisonnière de la consommation d\'énergie.</p>', unsafe_allow_html=True)
+
+   
 
 # SWITCH SUR LA PAGE DE PREDICTION
 if page == "Modèles":

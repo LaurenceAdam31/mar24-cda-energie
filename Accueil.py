@@ -10,24 +10,24 @@ st.set_page_config(page_title="Projet Energie", page_icon="🌟", layout="wide")
 st.markdown("""
     <style>
     .big-font {
-        font-size: 50px !important;
+        font-size: 36px !important;
         font-family: system-ui;
         color: #2d3a64; /* Couleur personnalisée pour le titre */
     }
     .medium-font {
-        font-size: 30px !important;
+        font-size: 25px !important;
         font-family: system-ui;
         color: #2d3a64;
     }
     .small-font {
-        font-size: 20px !important; /* Ajuste la taille selon tes besoins */
+        font-size: 18px !important; /* Ajuste la taille selon tes besoins */
         font-family: system-ui;
         line-height: 0.9; /* Ajuste la hauteur de ligne pour réduire l'espacement */
     }
     .linkedin-icon {
         display: inline-block;
-        width: 30px; /* Augmente la largeur de l'icône */
-        height: 30px; /* Augmente la hauteur de l'icône */
+        width: 25px; /* Augmente la largeur de l'icône */
+        height: 25px; /* Augmente la hauteur de l'icône */
         margin-left: 5px;
         vertical-align: middle;
     }
