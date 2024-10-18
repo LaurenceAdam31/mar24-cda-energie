@@ -115,7 +115,7 @@ if page == "Modélisation":
     x_cvs, mult = imda.preprocess_data(conso)
 
     # Graphiques
-    st.markdown("##### Série originale et série corrigée des variations saisonnières")
+    st.markdown("#### Série originale et série corrigée des variations saisonnières")
     with st.expander("Afficher/Masquer la série originale et la série corrigée"):
         fig, ax = plt.subplots(figsize=(8, 4))
 
@@ -135,7 +135,7 @@ if page == "Modélisation":
         st.pyplot(fig)
 
     # Créer un expander pour la décomposition saisonnière
-    st.markdown("##### Décomposition de la série")
+    st.markdown("#### Décomposition de la série")
     with st.expander("Afficher/Masquer la décomposition saisonnière"):
         fig2, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(8, 6), sharex=True)
 

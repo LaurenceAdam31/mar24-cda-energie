@@ -11,7 +11,7 @@ import altair as alt
 import os
 from statsmodels.tsa.seasonal import seasonal_decompose
 import base64
-
+pip install folium streamlit-folium
 
 # Fonction pour appliquer les styles CSS
 def apply_styles():
