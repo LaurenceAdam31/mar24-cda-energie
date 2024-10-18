@@ -12,7 +12,6 @@ from utils.import_data import prepare_data_by_region
 from utils.import_data import create_echanges
 
 
-
 # CONFIG DE LA PAGE --> AVEC FAVICON
 st.set_page_config(page_title="Projet Energie", page_icon="🌟", layout="wide")
 
@@ -76,21 +75,21 @@ elif page == "Visualisation Régionale":
          
     df_2021 = df_energie[df_energie["Annee"] == 2021]
         # Premier expander pour la première ligne de graphiques
-    with st.expander("Cartes de consommation et production par région en 2021"):
+    # with st.expander("Cartes de consommation et production par région en 2021"):
         
         # Créer deux colonnes pour la première ligne
-        col1, col2 = st.columns(2)
-        # Carte de consommation par région dans la première colonne
-        with col1:
-            st.write('**CARTE DE LA CONSOMMATION PAR RÉGION EN 2021**')
-            carte_conso = imda.create_map(df_2021, "Consommation (MW)", "Consommation (MW)", "Blues", "Consommation (MW)")
-            st_folium(carte_conso)
+    col1, col2 = st.columns(2)
+    # Carte de consommation par région dans la première colonne
+    with col1:
+        st.write('**CARTE DE LA CONSOMMATION PAR RÉGION EN 2021**')
+        carte_conso = imda.create_map(df_2021, "Consommation (MW)", "Consommation (MW)", "Blues", "Consommation (MW)")
+        st_folium(carte_conso)
 
-        # Carte de production par région dans la deuxième colonne
-        with col2:
-            st.write('**CARTE DE LA PRODUCTION PAR RÉGION EN 2021**')
-            carte_prod = imda.create_map(df_2021, "Production_totale (MW)", "Production_totale (MW)", "Reds", "Production Totale (MW)")
-            st_folium(carte_prod)
+    # Carte de production par région dans la deuxième colonne
+    with col2:
+        st.write('**CARTE DE LA PRODUCTION PAR RÉGION EN 2021**')
+        carte_prod = imda.create_map(df_2021, "Production_totale (MW)", "Production_totale (MW)", "Reds", "Production Totale (MW)")
+        st_folium(carte_prod)
 
     # Deuxième expander pour la deuxième ligne de graphiques
     with st.expander("Afficher les graphiques de phasage et de production en 2021"):
