@@ -31,6 +31,20 @@ st.set_page_config(page_title="Projet Energie - prédictions", page_icon="🌟",
 #     "93 - Provence-Alpes-Côte d Azur": ('SARIMAX', (0, 1, 2), (1, 2, 2, 12)),
    
 # }
+image_paths = {
+    '11': 'images/model_region_11.jpg',
+    '24': 'images/model_region_24.jpg',
+    '27': 'images/model_region_27.jpg',
+    '28': 'images/model_region_28.jpg',
+    '32': 'images/model_region_32.jpg',
+    '44': 'images/model_region_44.jpg',
+    '52': 'images/model_region_52.jpg',
+    '53': 'images/model_region_53.jpg',
+    '75': 'images/model_region_75.jpg',
+    '76': 'images/model_region_76.jpg',
+    '84': 'images/model_region_84.jpg',
+    '93': 'images/model_region_11.jpg',
+}
 
 
 def creer_modele(data, modele_info):
@@ -255,6 +269,7 @@ elif page == "Prediction Régionale":
         
         model_regional = load(f'model_region_{region_code}.pkl')
         
+        
         if model_regional:
 
             start_date = '2021-01-01'
@@ -293,7 +308,11 @@ elif page == "Prediction Régionale":
             
             st.dataframe(res)
 
-
+            image_path = image_paths.get(region_code)
+            if image_path:
+                st.image(image_path)
+            
+                
         else:
             st.write("Aucun modèle trouvé pour cette région.")
 
