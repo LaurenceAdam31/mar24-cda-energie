@@ -10,6 +10,7 @@ from utils.import_data import data_2021
 from utils.import_data import data_nationale
 from utils.import_data import prepare_data_by_region
 from utils.import_data import create_echanges
+from streamlit_folium import folium_static
 
 
 # CONFIG DE LA PAGE --> AVEC FAVICON
@@ -89,7 +90,7 @@ elif page == "Visualisation Régionale":
     with col2:
         st.write('**CARTE DE LA PRODUCTION PAR RÉGION EN 2021**')
         carte_prod = imda.create_map(df_2021, "Production_totale (MW)", "Production_totale (MW)", "Reds", "Production Totale (MW)")
-        folium_static(carte_prod, width=1500, height=800)
+        st_folium(carte_prod)
 
     # Deuxième expander pour la deuxième ligne de graphiques
     with st.expander("Afficher les graphiques de phasage et de production en 2021"):

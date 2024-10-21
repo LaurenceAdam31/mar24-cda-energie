@@ -137,7 +137,7 @@ if page == "Modélisation":
     # Créer un expander pour la décomposition saisonnière
     st.markdown("#### Décomposition de la série")
     with st.expander("Afficher/Masquer la décomposition saisonnière"):
-        fig2, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(8, 6), sharex=True)
+        fig2, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(8, 5), sharex=True)
 
         # Composantes de la décomposition
         ax1.plot(conso.index, np.log(conso['Consommation (MW)']), label='Log(Consommation)', color='blue')
