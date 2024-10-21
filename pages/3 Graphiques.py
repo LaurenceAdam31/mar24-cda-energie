@@ -89,7 +89,7 @@ elif page == "Visualisation Régionale":
     with col2:
         st.write('**CARTE DE LA PRODUCTION PAR RÉGION EN 2021**')
         carte_prod = imda.create_map(df_2021, "Production_totale (MW)", "Production_totale (MW)", "Reds", "Production Totale (MW)")
-        st_folium(carte_prod)
+        folium_static(carte_prod, width=1500, height=800)
 
     # Deuxième expander pour la deuxième ligne de graphiques
     with st.expander("Afficher les graphiques de phasage et de production en 2021"):

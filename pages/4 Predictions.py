@@ -164,16 +164,20 @@ if page == "Modélisation":
         </ul>
         """, unsafe_allow_html=True)
     
+    st.markdown('<p class="small-font">Les modèles SARIMA se sont révélés les plus adaptés à la forte variation saisonnière de la consommation d\'énergie.</p>', unsafe_allow_html=True)
+    
     with st.expander("Essais au niveau national"):
         st.write("&nbsp;&nbsp;&nbsp;&nbsp; Boucle pour trouver les meilleurs paramètres, basés sur le BIC")
+        st.image('images/modele boucle national.jpg')
         st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto les meilleurs paramètres, basés sur le AIC")
+        st.image('images/Modele auto national.jpg')
     
     with st.expander("Essais au niveau régional"):
         st.write("&nbsp;&nbsp;&nbsp;&nbsp; Application des meilleurs paramètres trouvés au niveau national :  order=(0,1,2), seasonal_order=(1, 2, 2, 12)")
         st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto pour trouver les meilleurs paramètres par région, entrainé sur l'ensemble des données")
         st.write("&nbsp;&nbsp;&nbsp;&nbsp; Modèle auto pour trouver les meilleurs paramètres par région, entrainé sur ensemble train/test")
 
-    st.markdown('<p class="small-font">Les modèles SARIMA se sont révélés les plus adaptés à la forte variation saisonnière de la consommation d\'énergie.</p>', unsafe_allow_html=True)
+    
 
    
 
@@ -224,8 +228,8 @@ if page == "Prediction Nationale":
 
     start_date = '2021-01-01'
 
-    # Visualisation
-    plt.figure(figsize=(15, 8))
+    # Visualisation 
+    plt.figure(figsize=(10, 4))
     if d < datetime.date(2024, 9, 1):
         filtered_conso = conso[(conso.index > pd.to_datetime(d))]
         plt.plot(filtered_conso, label='Données réelles')
@@ -289,7 +293,7 @@ elif page == "Prediction Régionale":
             pred_ci = pred.conf_int()
 
             # Visualisation
-            plt.figure(figsize=(15, 8))
+            plt.figure(figsize=(10, 4))
             if d < datetime.date(2024, 9, 1):
                 filtered_conso = df_region[(df_region.index > pd.to_datetime(d))]
                 plt.plot(filtered_conso, label='Données réelles')
