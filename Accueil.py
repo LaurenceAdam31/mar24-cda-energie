@@ -39,7 +39,7 @@ st.markdown('<p class="big-font">🌟 Projet Energie eco2Mix</p>', unsafe_allow_
 
 # Sous-titres avec taille moyenne de police
 st.markdown("<p class='medium-font'><strong>Etude sur la production et la consommation d'électricité</strong></p>", unsafe_allow_html=True)
-st.markdown("<p class='small-font'>en France métropolitaine de janvier 2013 à juin 2024</p>", unsafe_allow_html=True)
+st.markdown("<p class='small-font'>en France métropolitaine de janvier 2013 à septembre 2024</p>", unsafe_allow_html=True)
 
 # Image d'accueil
 st.image('images/accueil.jpg')
